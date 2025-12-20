@@ -7,6 +7,8 @@ import { AppointmentsModule } from "@/views/AppointmentsModule";
 import { HelpCenterView } from "@/views/HelpCenterView";
 import LoginPage from "@/views/LoginPage";
 import { ResourcesSettingsView, UserSettingsView } from "@/views/SettingsViews";
+import { ServiceManagement } from "@/views/ServiceManagement";
+import { ProviderManagement } from "@/views/ProviderManagement";
 import { Box, Calendar, HelpCircle, LogOut, Settings, User } from "lucide-react";
 import { useState } from "react";
 
@@ -41,6 +43,16 @@ function App() {
                     title: "User",
                     Icon: User,
                     Content: UserSettingsView,
+                },
+                {
+                    title: "Services",
+                    Icon: Box,
+                    Content: ServiceManagement,
+                },
+                {
+                    title: "Providers",
+                    Icon: User,
+                    Content: ProviderManagement,
                 },
                 {
                     title: "Resources",

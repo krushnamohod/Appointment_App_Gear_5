@@ -25,68 +25,67 @@ function AppointmentRow({ appointment, onEdit, className }) {
     };
 
     return (
-        <Card
+        <div
             className={cn(
-                "flex items-center justify-between gap-4 p-4 transition-all hover:shadow-md",
+                "group grid grid-cols-12 gap-4 items-center px-6 py-4 transition-all hover:bg-slate-50",
                 className
             )}
             role="article"
             aria-label={`Appointment: ${name}`}
         >
-            {/* Left Section: Name + Duration + Resources */}
-            <div className="flex flex-1 items-center gap-6">
-                {/* Name */}
-                <div className="min-w-[160px]">
-                    <h3 className="text-base font-semibold text-gray-900">{name}</h3>
+            {/* Col 1: Service Name & Status */}
+            <div className="col-span-4 min-w-0">
+                <div className="flex items-center gap-2">
+                    <h3 className="truncate text-sm font-medium text-gray-900">{name}</h3>
+                    <StatusBadge isPublished={isPublished} className="scale-90" />
                 </div>
-
-                {/* Duration */}
-                <div className="flex items-center gap-1.5 text-sm text-gray-600">
-                    <Clock className="h-4 w-4" aria-hidden="true" />
-                    <span>{duration} Min Duration</span>
-                </div>
-
-                {/* Resources */}
-                <div className="flex items-center gap-1.5">
-                    <Users className="h-4 w-4 text-gray-500" aria-hidden="true" />
-                    <div className="flex gap-1">
-                        {resources.map((resource) => (
-                            <ResourcePill key={resource} label={resource} />
-                        ))}
-                    </div>
-                </div>
-
-                {/* Upcoming Meetings */}
-                <div className="text-sm text-gray-500">
-                    {upcomingMeetings} Meeting{upcomingMeetings !== 1 ? "s" : ""} Upcoming
+                <div className="mt-1 text-xs text-gray-500">
+                    {upcomingMeetings} Upcoming Booking{upcomingMeetings !== 1 ? 's' : ''}
                 </div>
             </div>
 
-            {/* Right Section: Actions + Status */}
-            <div className="flex items-center gap-3">
+            {/* Col 2: Duration */}
+            <div className="col-span-2 flex items-center text-sm text-gray-600">
+                <Clock className="mr-1.5 h-4 w-4 text-gray-400" aria-hidden="true" />
+                <span>{duration} min</span>
+            </div>
+
+            {/* Col 3: Resources */}
+            <div className="col-span-3">
+                <div className="flex flex-wrap gap-1">
+                    {resources && resources.length > 0 ? (
+                        resources.map((resource) => (
+                            <ResourcePill key={resource} label={resource} />
+                        ))
+                    ) : (
+                        <span className="text-xs text-gray-400 italic">No providers</span>
+                    )}
+                </div>
+            </div>
+
+            {/* Col 4: Actions */}
+            <div className="col-span-3 flex items-center justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
                 <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={handleShare}
-                    aria-label={`Share ${name}`}
+                    className="h-8 w-8 p-0 text-gray-400 hover:text-blue-600"
+                    title="Share Link"
                 >
-                    <Share2 className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
-                    Share
+                    <Share2 className="h-4 w-4" />
                 </Button>
 
                 <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={() => onEdit?.(appointment)}
-                    aria-label={`Edit ${name}`}
+                    className="h-8 w-8 p-0 text-gray-400 hover:text-indigo-600"
+                    title="Edit Service"
                 >
-                    <Edit className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
-                    Edit
+                    <Edit className="h-4 w-4" />
                 </Button>
-
-                <StatusBadge isPublished={isPublished} />
             </div>
-        </Card>
+        </div>
     );
 }
 

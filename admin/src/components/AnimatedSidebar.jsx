@@ -51,6 +51,10 @@ function AnimatedSidebar({ isOpen: propIsOpen = true, items }) {
     };
 
     const handleItemClick = (item) => {
+        if (item.onClick) {
+            item.onClick();
+        }
+
         if (item.subItems) {
             toggleExpand(item.title);
         } else {
@@ -86,14 +90,24 @@ function AnimatedSidebar({ isOpen: propIsOpen = true, items }) {
                 <button
                     onClick={() => handleItemClick(item)}
                     className={cn(
-                        "flex items-center w-full py-2 px-4 text-sm transition-all duration-200",
+                        "group flex items-center w-full py-2.5 px-4 text-sm font-medium transition-all duration-200 border-l-4",
                         isOpen ? "justify-start" : "justify-center",
-                        isActive ? "bg-blue-50 text-blue-900" : "text-gray-700 hover:bg-gray-100",
-                        item.className, // Custom classes (e.g., text-red-500)
-                        depth > 0 && isOpen && "pl-8"
+                        isActive
+                            ? "border-blue-600 bg-blue-50/50 text-blue-700"
+                            : "border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900",
+                        item.className,
+                        depth > 0 && isOpen && "pl-8 border-l-0" // Indent sub-items, no border
                     )}
                 >
-                    {item.Icon && <item.Icon className={cn("w-4 h-4 flex-shrink-0", item.iconClassName)} />}
+                    {item.Icon && (
+                        <item.Icon
+                            className={cn(
+                                "w-5 h-5 flex-shrink-0 transition-colors",
+                                isActive ? "text-blue-600" : "text-slate-400 group-hover:text-slate-600",
+                                item.iconClassName
+                            )}
+                        />
+                    )}
 
                     {isOpen && (
                         <div className="ml-3 flex flex-1 items-center justify-between whitespace-nowrap">

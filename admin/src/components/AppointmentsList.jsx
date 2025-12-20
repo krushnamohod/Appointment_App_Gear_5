@@ -41,17 +41,27 @@ function AppointmentsList({ className, onEditAppointment }) {
 
     return (
         <div
-            className={cn("flex flex-col gap-3 px-6 py-4", className)}
+            className={cn("flex flex-col", className)}
             role="list"
             aria-label="Appointments list"
         >
-            {filteredAppointments.map((appointment) => (
-                <AppointmentRow
-                    key={appointment.id}
-                    appointment={appointment}
-                    onEdit={onEditAppointment}
-                />
-            ))}
+            {/* Table Header */}
+            <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-gray-100 bg-gray-50/50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <div className="col-span-4">Service Name</div>
+                <div className="col-span-2">Duration</div>
+                <div className="col-span-3">Assigned Team</div>
+                <div className="col-span-3 text-right">Actions</div>
+            </div>
+
+            <div className="divide-y divide-gray-100">
+                {filteredAppointments.map((appointment) => (
+                    <AppointmentRow
+                        key={appointment.id}
+                        appointment={appointment}
+                        onEdit={onEditAppointment}
+                    />
+                ))}
+            </div>
         </div>
     );
 }

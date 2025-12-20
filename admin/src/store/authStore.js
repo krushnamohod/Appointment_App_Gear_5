@@ -1,48 +1,53 @@
 import { create } from 'zustand';
 
+const API_URL = "http://localhost:3000/api";
+
 /**
- * @intent Admin authentication store with hardcoded credentials
- * Admin: admin@admin.com / Admin@123
- * Organiser: org@org.com / Org@123
+ * @intent Admin authentication store with real API integration
  */
 export const useAdminAuthStore = create((set) => ({
-    user: null,
+    user: JSON.parse(localStorage.getItem('adminUser')) || null,
     isAuthenticated: !!localStorage.getItem('adminToken'),
     role: localStorage.getItem('adminRole') || null,
+    token: localStorage.getItem('adminToken') || null,
 
-    login: (email, password) => {
-        // Hardcoded admin credentials
-        const ADMINS = [
-            {
-                email: 'admin@admin.com',
-                password: 'Admin@123',
-                name: 'Admin User',
-                role: 'admin'
-            },
-            {
-                email: 'org@org.com',
-                password: 'Org@123',
-                name: 'Organiser User',
-                role: 'organiser'
+    login: async (email, password) => {
+        try {
+            const res = await fetch(`${API_URL}/auth/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                return { success: false, error: data.message || "Login failed" };
             }
-        ];
 
-        const user = ADMINS.find(u => u.email === email && u.password === password);
+            const { user, token } = data;
 
-        if (user) {
-            const { password: _, ...userWithoutPassword } = user;
-            localStorage.setItem('adminToken', 'admin-jwt-token-12345');
+            // Only allow ADMIN or ORGANISER to login to admin panel
+            if (user.role !== "ADMIN" && user.role !== "ORGANISER") {
+                return { success: false, error: "Access denied. Admin only." };
+            }
+
+            localStorage.setItem('adminToken', token);
             localStorage.setItem('adminRole', user.role);
-            set({ user: userWithoutPassword, isAuthenticated: true, role: user.role });
-            return { success: true, user: userWithoutPassword };
-        }
+            localStorage.setItem('adminUser', JSON.stringify(user));
 
-        return { success: false, error: 'Invalid email or password' };
+            set({ user, isAuthenticated: true, role: user.role, token });
+            return { success: true, user };
+        } catch (error) {
+            console.error("Login error:", error);
+            return { success: false, error: "Network error. Please try again." };
+        }
     },
 
     logout: () => {
         localStorage.removeItem('adminToken');
         localStorage.removeItem('adminRole');
-        set({ user: null, isAuthenticated: false, role: null });
+        localStorage.removeItem('adminUser');
+        set({ user: null, isAuthenticated: false, role: null, token: null });
     }
 }));

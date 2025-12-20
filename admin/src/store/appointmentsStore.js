@@ -1,38 +1,40 @@
 import { create } from 'zustand';
+import { useAdminAuthStore } from './authStore';
+
+const API_URL = "http://localhost:3000/api";
 
 /**
- * @intent Manages global state for appointments list
+ * @intent Manages global state for appointments (services dashboard) list
+ * Fetches real data from backend
  */
 const useAppointmentsStore = create((set, get) => ({
-    appointments: [
-        {
-            id: '1',
-            name: 'Dental care',
-            duration: 30,
-            resources: ['A1', 'A2'],
-            upcomingMeetings: 1,
-            isPublished: true,
-        },
-        {
-            id: '2',
-            name: 'Tennis court',
-            duration: 60,
-            resources: ['R1', 'R2'],
-            upcomingMeetings: 0,
-            isPublished: false,
-        },
-        {
-            id: '3',
-            name: 'Interviews',
-            duration: 45,
-            resources: ['A1'],
-            upcomingMeetings: 3,
-            isPublished: true,
-        },
-    ],
+    appointments: [],
     searchQuery: '',
+    isLoading: false,
+    error: null,
 
     setSearchQuery: (query) => set({ searchQuery: query }),
+
+    fetchAppointments: async () => {
+        set({ isLoading: true, error: null });
+        try {
+            // Access token from auth store
+            const token = useAdminAuthStore.getState().token;
+            if (!token) throw new Error("Not authenticated");
+
+            const res = await fetch(`${API_URL}/services?dashboard=true`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+
+            if (!res.ok) throw new Error("Failed to fetch appointments");
+
+            const data = await res.json();
+            set({ appointments: data, isLoading: false });
+        } catch (error) {
+            console.error("Fetch appointments error:", error);
+            set({ error: error.message, isLoading: false });
+        }
+    },
 
     getFilteredAppointments: () => {
         const { appointments, searchQuery } = get();
@@ -42,13 +44,43 @@ const useAppointmentsStore = create((set, get) => ({
         );
     },
 
-    togglePublishStatus: (id) =>
+    togglePublishStatus: async (id) => {
+        const { appointments } = get();
+        const appointment = appointments.find(a => a.id === id);
+        if (!appointment) return;
+
+        const newStatus = !appointment.isPublished;
+
+        // Optimistic update
         set((state) => ({
             appointments: state.appointments.map((apt) =>
-                apt.id === id ? { ...apt, isPublished: !apt.isPublished } : apt
+                apt.id === id ? { ...apt, isPublished: newStatus } : apt
             ),
-        })),
+        }));
 
+        try {
+            const token = useAdminAuthStore.getState().token;
+            await fetch(`${API_URL}/services/${id}`, {
+                method: 'PUT',
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ isPublished: newStatus })
+            });
+        } catch (error) {
+            console.error("Toggle status error:", error);
+            // Revert on error
+            set((state) => ({
+                appointments: state.appointments.map((apt) =>
+                    apt.id === id ? { ...apt, isPublished: !newStatus } : apt
+                ),
+            }));
+        }
+    },
+
+    // Note: Add/Update should ideally be handled by the ServiceManagement view or similar
+    // But keeping these helpers for compatibility if needed, though mostly unused in current Dashboard view
     addAppointment: (appointment) =>
         set((state) => ({
             appointments: [...state.appointments, { ...appointment, id: Date.now().toString() }],
@@ -61,14 +93,10 @@ const useAppointmentsStore = create((set, get) => ({
             ),
         })),
 
-    publishAppointment: (id, appointmentData) =>
-        set((state) => ({
-            appointments: state.appointments.map((apt) =>
-                apt.id === id
-                    ? { ...apt, ...appointmentData, isPublished: true }
-                    : apt
-            ),
-        })),
+    publishAppointment: (id, appointmentData) => {
+        // Reuse toggle or update logic
+        get().updateAppointment(id, { ...appointmentData, isPublished: true });
+    }
 }));
 
 export default useAppointmentsStore;

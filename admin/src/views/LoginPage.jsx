@@ -154,7 +154,7 @@ const SyncraLoginPage = () => {
         setError("");
         setLoading(true);
         await new Promise(resolve => setTimeout(resolve, 500));
-        const result = login(email, password);
+        const result = await login(email, password);
         if (!result.success) {
             setError(result.error);
         }
