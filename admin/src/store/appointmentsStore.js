@@ -79,12 +79,31 @@ const useAppointmentsStore = create((set, get) => ({
         }
     },
 
-    // Note: Add/Update should ideally be handled by the ServiceManagement view or similar
-    // But keeping these helpers for compatibility if needed, though mostly unused in current Dashboard view
-    addAppointment: (appointment) =>
-        set((state) => ({
-            appointments: [...state.appointments, { ...appointment, id: Date.now().toString() }],
-        })),
+    // Create a new appointment/service
+    addAppointment: async (appointmentData) => {
+        try {
+            const token = useAdminAuthStore.getState().token;
+            const res = await fetch(`${API_URL}/services`, {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(appointmentData)
+            });
+
+            if (!res.ok) throw new Error("Failed to create appointment");
+
+            const newAppointment = await res.json();
+            set((state) => ({
+                appointments: [...state.appointments, newAppointment],
+            }));
+            return { success: true, data: newAppointment };
+        } catch (error) {
+            console.error("Create appointment error:", error);
+            return { success: false, error: error.message };
+        }
+    },
 
     updateAppointment: (id, updates) =>
         set((state) => ({
@@ -93,9 +112,32 @@ const useAppointmentsStore = create((set, get) => ({
             ),
         })),
 
-    publishAppointment: (id, appointmentData) => {
-        // Reuse toggle or update logic
-        get().updateAppointment(id, { ...appointmentData, isPublished: true });
+    // Publish/update appointment with all data
+    publishAppointment: async (id, appointmentData) => {
+        try {
+            const token = useAdminAuthStore.getState().token;
+            const res = await fetch(`${API_URL}/services/${id}`, {
+                method: 'PUT',
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ ...appointmentData, isPublished: true })
+            });
+
+            if (!res.ok) throw new Error("Failed to publish appointment");
+
+            const updated = await res.json();
+            set((state) => ({
+                appointments: state.appointments.map((apt) =>
+                    apt.id === id ? { ...apt, ...updated } : apt
+                ),
+            }));
+            return { success: true, data: updated };
+        } catch (error) {
+            console.error("Publish appointment error:", error);
+            return { success: false, error: error.message };
+        }
     }
 }));
 

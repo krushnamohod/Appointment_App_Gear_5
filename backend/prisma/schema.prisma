@@ -35,19 +35,34 @@ model User {
 }
 
 model Service {
-  id                  String   @id @default(uuid())
-  name                String
-  duration            Int
-  price               Int      @default(0)
-  image               String?
-  capacity            Int      @default(1)
-  manageCapacity      Boolean  @default(false)
-  questions           Json?
-  venue               String?
-  confirmationMessage String?
-  isPublished         Boolean  @default(false)
-  providers           Provider[]
-  slots               Slot[]
+  id                    String    @id @default(uuid())
+  name                  String
+  duration              Int
+  price                 Int       @default(0)
+  image                 String?
+  capacity              Int       @default(1)
+  manageCapacity        Boolean   @default(false)
+  questions             Json?
+  venue                 String?
+  
+  // Options tab fields
+  manualConfirmation    Boolean   @default(false)
+  capacityLimit         Int       @default(50)
+  paidBooking           Boolean   @default(false)
+  bookingFee            Int       @default(0)
+  slotCreation          String    @default("00:30")
+  cancellationHours     String    @default("01:00")
+  
+  // Misc tab fields
+  introductionMessage   String?
+  confirmationMessage   String?
+  
+  isPublished           Boolean   @default(false)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  
+  providers             Provider[]
+  slots                 Slot[]
 }
 
 model Provider {

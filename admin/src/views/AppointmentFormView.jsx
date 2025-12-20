@@ -3,6 +3,8 @@ import { PreviewModal } from "@/components/PreviewModal";
 import { SecondaryActionBar } from "@/components/SecondaryActionBar";
 import { AppointmentHeader } from "@/components/form/AppointmentHeader";
 import { CoreDetailsSection } from "@/components/form/CoreDetailsSection";
+import { MiscTab } from "@/components/form/MiscTab";
+import { OptionsTab } from "@/components/form/OptionsTab";
 import { QuestionsTab } from "@/components/form/QuestionsTab";
 import { ScheduleTab } from "@/components/form/ScheduleTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
@@ -38,9 +40,9 @@ function AppointmentFormView({ appointment, onBack, onReporting, onSettings }) {
     // Form state
     const [formData, setFormData] = useState({
         title: appointment?.name || "New Appointment",
-        picture: null,
+        picture: appointment?.image || null,
         duration: formatDuration(appointment?.duration || 30),
-        location: "Doctor's Office",
+        location: appointment?.venue || "Doctor's Office",
         bookType: "user",
         selectedUsers: appointment?.resources || ["A1", "A2"],
         availableUsers: [
@@ -48,8 +50,24 @@ function AppointmentFormView({ appointment, onBack, onReporting, onSettings }) {
             { id: "A2", code: "A2", name: "User 2" },
         ],
         assignment: "automatically",
-        manageCapacity: false,
-        simultaneousAppointments: 1,
+        manageCapacity: appointment?.manageCapacity || false,
+        simultaneousAppointments: appointment?.capacity || 1,
+    });
+
+    // Options tab state
+    const [optionsData, setOptionsData] = useState({
+        manualConfirmation: appointment?.manualConfirmation || false,
+        capacityLimit: appointment?.capacityLimit || 50,
+        paidBooking: appointment?.paidBooking || false,
+        bookingFee: appointment?.bookingFee || 200,
+        slotCreation: appointment?.slotCreation || "00:30",
+        cancellationHours: appointment?.cancellationHours || "01:00"
+    });
+
+    // Misc tab state
+    const [miscData, setMiscData] = useState({
+        introductionMessage: appointment?.introductionMessage || "Schedule your visit today and experience expert care brought right to your doorstep.",
+        confirmationMessage: appointment?.confirmationMessage || "Thank you for your trust, we look forward to meeting you."
     });
 
     const [schedules, setSchedules] = useState([
@@ -86,6 +104,8 @@ function AppointmentFormView({ appointment, onBack, onReporting, onSettings }) {
     };
     const handlePictureRemove = () => setFormData((prev) => ({ ...prev, picture: null }));
     const handleFormChange = (data) => setFormData(data);
+    const handleOptionsChange = (data) => setOptionsData(data);
+    const handleMiscChange = (data) => setMiscData(data);
 
     const handleNew = () => {
         setFormData({
@@ -103,6 +123,18 @@ function AppointmentFormView({ appointment, onBack, onReporting, onSettings }) {
             manageCapacity: false,
             simultaneousAppointments: 1,
         });
+        setOptionsData({
+            manualConfirmation: false,
+            capacityLimit: 50,
+            paidBooking: false,
+            bookingFee: 200,
+            slotCreation: "00:30",
+            cancellationHours: "01:00"
+        });
+        setMiscData({
+            introductionMessage: "",
+            confirmationMessage: ""
+        });
         setSchedules([{ id: 1, day: "Monday", from: "9:00", to: "12:00" }]);
         setIsPublished(false);
     };
@@ -110,13 +142,30 @@ function AppointmentFormView({ appointment, onBack, onReporting, onSettings }) {
     const handlePreview = () => setShowPreview(true);
     const handleMeetings = () => setShowMeetings(true);
 
-    // PUBLISH: Save data to store and navigate back
+    // PUBLISH: Save all data to backend and navigate back
     const handlePublish = () => {
         const appointmentData = {
+            // Core details
             name: formData.title,
             duration: parseDuration(formData.duration),
-            resources: formData.selectedUsers,
-            location: formData.location,
+            venue: formData.location,
+            image: formData.picture,
+            capacity: formData.simultaneousAppointments,
+            manageCapacity: formData.manageCapacity,
+
+            // Options tab
+            manualConfirmation: optionsData.manualConfirmation,
+            capacityLimit: optionsData.capacityLimit,
+            paidBooking: optionsData.paidBooking,
+            bookingFee: optionsData.bookingFee,
+            slotCreation: optionsData.slotCreation,
+            cancellationHours: optionsData.cancellationHours,
+
+            // Misc tab
+            introductionMessage: miscData.introductionMessage,
+            confirmationMessage: miscData.confirmationMessage,
+
+            // Publish status
             isPublished: true,
         };
 
@@ -187,23 +236,11 @@ function AppointmentFormView({ appointment, onBack, onReporting, onSettings }) {
                             </TabsContent>
 
                             <TabsContent value="options" className="mt-6">
-                                <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50/50 p-8 text-center">
-                                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
-                                        <span className="text-xl">⚙️</span>
-                                    </div>
-                                    <p className="font-medium text-slate-600">Configure appointment options and pricing</p>
-                                    <p className="mt-1 text-sm text-slate-400">Coming soon</p>
-                                </div>
+                                <OptionsTab options={optionsData} onChange={handleOptionsChange} />
                             </TabsContent>
 
                             <TabsContent value="misc" className="mt-6">
-                                <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50/50 p-8 text-center">
-                                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
-                                        <span className="text-xl">📋</span>
-                                    </div>
-                                    <p className="font-medium text-slate-600">Miscellaneous settings and configurations</p>
-                                    <p className="mt-1 text-sm text-slate-400">Coming soon</p>
-                                </div>
+                                <MiscTab messages={miscData} onChange={handleMiscChange} />
                             </TabsContent>
                         </Tabs>
                     </div>
