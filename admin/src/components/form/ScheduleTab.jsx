@@ -47,8 +47,13 @@ function ScheduleTab({ className, schedules, onSchedulesChange }) {
                         className="grid grid-cols-[200px_1fr_40px_1fr_40px] items-center gap-4 rounded-lg border bg-white px-2 py-2 hover:bg-gray-50"
                     >
                         {/* Day */}
-                        <span className="text-sm font-medium text-gray-700">{schedule.day}</span>
-
+                        <input
+                            type="text"
+                            value={schedule.day}
+                            onChange={(e) => handleRowChange(index, "day", e.target.value)}
+                            className="text-center h-8"
+                            placeholder="Monday"
+                        />
                         {/* From Time */}
                         <Input
                             type="text"
