@@ -8,9 +8,10 @@ import LoginPage from "@/views/LoginPage";
 import { ProviderManagement } from "@/views/ProviderManagement";
 import { ReportingView } from "@/views/ReportingView";
 import { ServiceManagement } from "@/views/ServiceManagement";
-import { ResourcesSettingsView, UserSettingsView } from "@/views/SettingsViews";
+import { ResourcesModule } from "@/views/ResourcesModule";
+import { UserSettingsView } from "@/views/SettingsViews";
 import { UserRoleManagement } from "@/views/UserRoleManagement";
-import { BarChart3, Box, Calendar, HelpCircle, LogOut, Settings, User, Users } from "lucide-react";
+import { BarChart3, Box, Calendar, HelpCircle, LayoutGrid, LogOut, Settings, User, Users } from "lucide-react";
 
 /**
  * @intent Main app component with auth routing and sidebar layout
@@ -39,6 +40,11 @@ function App() {
             Icon: BarChart3,
             Content: ReportingView,
         },
+        {
+            title: "Resources",
+            Icon: LayoutGrid,
+            Content: ResourcesModule,
+        },
         // Only show Role Management for ADMIN users
         ...(role === "ADMIN" ? [{
             title: "Role Management",
@@ -63,11 +69,6 @@ function App() {
                     title: "Providers",
                     Icon: User,
                     Content: ProviderManagement,
-                },
-                {
-                    title: "Resources",
-                    Icon: Box,
-                    Content: ResourcesSettingsView,
                 },
             ],
         },

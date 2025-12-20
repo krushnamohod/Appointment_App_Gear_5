@@ -96,7 +96,9 @@ const SelectProviderStep = () => {
   return (
     <div className="card-planner p-6">
       {/* Header */}
-      <h2 className="font-serif text-2xl text-ink text-center mb-6">Select user/ Resource</h2>
+      <h2 className="font-serif text-2xl text-ink text-center mb-6">
+        Select {isResource ? 'a Resource' : 'a Specialist'}
+      </h2>
 
       {/* Resources Grid - 2 columns */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -134,12 +136,10 @@ const SelectProviderStep = () => {
             <p className="text-sm text-ink/60 mt-1">{resource.name}</p>
 
             {/* Speciality if available */}
-            {resource.speciality && (
-              <p className="text-xs text-ink/40 mt-1 flex items-center gap-1">
-                <Briefcase size={10} />
-                {resource.speciality}
-              </p>
-            )}
+            <p className="text-xs text-ink/40 mt-1 flex items-center gap-1">
+              <Briefcase size={10} />
+              {resource.speciality || (isResource ? 'Available Unit' : 'Expert')}
+            </p>
 
             {/* Selected indicator */}
             {isSelected(resource) && (
@@ -151,12 +151,11 @@ const SelectProviderStep = () => {
         ))}
       </div>
 
-      {/* Introduction Message */}
       <div className="text-center py-4 border-t border-ink/10">
         <p className="text-ink/60 italic text-sm">
-          Schedule your visit today and experience expert care brought right to your doorstep.
+          {booking.service?.introductionMessage || "Choose your preferred option to view available time slots."}
         </p>
-        <p className="text-xs text-ink/40 mt-1">↓ Introduction message</p>
+        <p className="text-xs text-ink/40 mt-1">Introduction</p>
       </div>
 
       {/* Navigation */}
@@ -176,7 +175,7 @@ const SelectProviderStep = () => {
           Continue
         </button>
       </div>
-    </div>
+    </div >
   );
 };
 
