@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/Button";
-import { Checkbox } from "@/components/ui/Checkbox";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { cn } from "@/lib/utils";
@@ -92,9 +91,9 @@ function QuestionsTab() {
                                     {renderAnswerPreview(q.type, q.answer)}
                                 </td>
                                 <td className="px-4 py-3 text-center">
-                                    <div className="flex justify-center">
-                                        <Checkbox checked={q.mandatory} disabled />
-                                    </div>
+                                    <span className={`px-2 py-1 rounded text-xs font-medium ${q.mandatory ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                                        {q.mandatory ? 'Yes' : 'No'}
+                                    </span>
                                 </td>
                                 <td className="px-4 py-3 text-center">
                                     <button
@@ -158,13 +157,30 @@ function QuestionsTab() {
                                 />
                             </div>
                             <div className="pt-8">
-                                <div className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id="mandatory-new"
-                                        checked={newQuestion.mandatory}
-                                        onCheckedChange={(checked) => setNewQuestion({ ...newQuestion, mandatory: checked })}
-                                    />
-                                    <Label htmlFor="mandatory-new" className="font-normal text-gray-600">Mandatory Answer</Label>
+                                <div className="space-y-2">
+                                    <Label className="font-normal text-gray-600">Mandatory Answer</Label>
+                                    <div className="flex items-center gap-4">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="mandatory"
+                                                checked={!newQuestion.mandatory}
+                                                onChange={() => setNewQuestion({ ...newQuestion, mandatory: false })}
+                                                className="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                                            />
+                                            <span className="text-sm text-gray-700">No</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="mandatory"
+                                                checked={newQuestion.mandatory}
+                                                onChange={() => setNewQuestion({ ...newQuestion, mandatory: true })}
+                                                className="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                                            />
+                                            <span className="text-sm text-gray-700">Yes</span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
