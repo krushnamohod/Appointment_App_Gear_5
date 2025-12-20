@@ -1,8 +1,8 @@
 import { useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
 import { forgotPassword } from '../../services/authService';
 import Button from '../common/Button';
 import Input from '../common/Input';
-import toast from 'react-hot-toast';
 
 const ForgotPassword = () => {
   const {
@@ -12,10 +12,8 @@ const ForgotPassword = () => {
   } = useForm();
 
   const onSubmit = async ({ email }) => {
-    try {
-      await forgotPassword(email);
-      toast.success('Reset link sent');
-    } catch {}
+    await forgotPassword(email);
+    toast.success('Reset link sent');
   };
 
   return (
