@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Trash, Edit, X, Save } from "lucide-react";
 import { useAdminAuthStore } from "@/store/authStore";
+import { ImageUpload } from "@/components/ImageUpload";
 
 const API_URL = "http://localhost:3000/api";
 
@@ -123,13 +124,11 @@ export function ProviderManagement() {
                                 <option key={s.id} value={s.id}>{s.name}</option>
                             ))}
                         </select>
-                        <div className="col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Avatar URL</label>
-                            <input
-                                className="border p-2 rounded w-full"
-                                placeholder="https://images.unsplash.com/photo-1537368910025-700350fe46c7..."
-                                value={currentProvider.avatar || ""}
-                                onChange={e => setCurrentProvider({ ...currentProvider, avatar: e.target.value })}
+                        <div className="col-span-2 border-t pt-2">
+                            <ImageUpload
+                                currentImage={currentProvider.avatar}
+                                onUploadSuccess={(url) => setCurrentProvider({ ...currentProvider, avatar: url })}
+                                label="Provider Avatar"
                             />
                         </div>
                     </div>

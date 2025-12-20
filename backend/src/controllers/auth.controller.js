@@ -147,3 +147,20 @@ export async function loginWithOTP(req, res, next) {
     next(error);
   }
 }
+// Update Profile
+export async function updateProfile(req, res, next) {
+  try {
+    const userId = req.user.id;
+    const { name, avatar } = req.body;
+
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: { name, avatar },
+    });
+
+    const { password: _, ...userWithoutPassword } = user;
+    res.json({ message: "Profile updated successfully", user: userWithoutPassword });
+  } catch (error) {
+    next(error);
+  }
+}

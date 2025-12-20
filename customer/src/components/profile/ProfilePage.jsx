@@ -1,5 +1,5 @@
 import {
-  Calendar,
+  Camera,
   CheckCircle,
   Clock,
   Mail,
@@ -20,6 +20,7 @@ import {
   cancelAppointment,
   getMyAppointments
 } from '../../services/appointmentService';
+import { uploadImage, updateProfile } from '../../services/authService';
 import LoadingSpinner from '../common/LoadingSpinner';
 
 /**
@@ -27,8 +28,9 @@ import LoadingSpinner from '../common/LoadingSpinner';
  */
 const ProfilePage = () => {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { user, updateProfile: updateLocalProfile } = useAuthStore();
   const [appointments, setAppointments] = useState([]);
+  const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('upcoming');
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,6 +55,25 @@ const ProfilePage = () => {
     await cancelAppointment(id);
     toast.success('Appointment cancelled');
     fetchAppointments();
+  };
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      const uploadRes = await uploadImage(file);
+      const imageUrl = uploadRes.data.url;
+
+      await updateProfile({ avatar: imageUrl });
+      updateLocalProfile({ avatar: imageUrl });
+      toast.success('Avatar updated!');
+    } catch (error) {
+      console.error('Failed to update avatar', error);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const upcoming = appointments.filter((a) => a.status === 'CONFIRMED');
@@ -96,13 +117,24 @@ const ProfilePage = () => {
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row items-center gap-6">
             {/* Avatar */}
-            <div className="w-20 h-20 bg-terracotta rounded-planner flex items-center justify-center text-3xl font-serif text-white overflow-hidden"
-              style={{ boxShadow: '3px 3px 0px rgba(45, 45, 45, 0.1)' }}>
-              {user?.avatar ? (
-                <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
-              ) : (
-                user?.name?.charAt(0)?.toUpperCase() || 'U'
-              )}
+            <div className="relative group">
+              <div className="w-20 h-20 bg-terracotta rounded-planner flex items-center justify-center text-3xl font-serif text-white overflow-hidden"
+                style={{ boxShadow: '3px 3px 0px rgba(45, 45, 45, 0.1)' }}>
+                {user?.avatar ? (
+                  <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                ) : (
+                  user?.name?.charAt(0)?.toUpperCase() || 'U'
+                )}
+                {uploading && (
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  </div>
+                )}
+              </div>
+              <label className="absolute -bottom-1 -right-1 w-8 h-8 bg-white border border-ink/10 rounded-full flex items-center justify-center text-ink/60 hover:text-terracotta cursor-pointer shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                <Camera size={16} />
+                <input type="file" className="hidden" accept="image/*" onChange={handleAvatarChange} disabled={uploading} />
+              </label>
             </div>
 
             {/* User Info */}
