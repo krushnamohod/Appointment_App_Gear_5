@@ -136,9 +136,7 @@ function AppointmentFormView({ appointment, onBack, onReporting, onSettings }) {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-            {/* TopNavBar removed from here */}
-
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-blue-50">
             <SecondaryActionBar
                 onNew={handleNew}
                 onPreview={handlePreview}
@@ -148,46 +146,67 @@ function AppointmentFormView({ appointment, onBack, onReporting, onSettings }) {
                 isPublished={isPublished}
             />
 
-            <main className="mx-auto max-w-6xl">
-                <AppointmentHeader
-                    title={formData.title}
-                    onTitleChange={handleTitleChange}
-                    picture={formData.picture}
-                    onPictureUpload={handlePictureUpload}
-                    onPictureRemove={handlePictureRemove}
-                />
+            <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
+                {/* Header Card */}
+                <div className="mb-6 overflow-hidden rounded-2xl border border-slate-200/60 bg-white/80 shadow-xl shadow-slate-200/50 backdrop-blur-sm">
+                    <AppointmentHeader
+                        title={formData.title}
+                        onTitleChange={handleTitleChange}
+                        picture={formData.picture}
+                        onPictureUpload={handlePictureUpload}
+                        onPictureRemove={handlePictureRemove}
+                    />
+                </div>
 
-                <CoreDetailsSection data={formData} onChange={handleFormChange} />
+                {/* Core Details Card */}
+                <div className="mb-6 overflow-hidden rounded-2xl border border-slate-200/60 bg-white/80 shadow-xl shadow-slate-200/50 backdrop-blur-sm">
+                    <div className="border-b border-slate-100 px-6 py-4">
+                        <h2 className="text-lg font-semibold text-slate-800">Core Details</h2>
+                        <p className="text-sm text-slate-500">Configure appointment settings and resources</p>
+                    </div>
+                    <CoreDetailsSection data={formData} onChange={handleFormChange} />
+                </div>
 
-                <div className="px-6 py-4">
-                    <Tabs defaultValue="schedule">
-                        <TabsList>
-                            <TabsTrigger value="schedule">Schedule</TabsTrigger>
-                            <TabsTrigger value="question">Question</TabsTrigger>
-                            <TabsTrigger value="options">Options</TabsTrigger>
-                            <TabsTrigger value="misc">Misc</TabsTrigger>
-                        </TabsList>
+                {/* Tabs Card */}
+                <div className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white/80 shadow-xl shadow-slate-200/50 backdrop-blur-sm">
+                    <div className="px-4 py-4 sm:px-6">
+                        <Tabs defaultValue="schedule">
+                            <TabsList className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:gap-1">
+                                <TabsTrigger value="schedule">Schedule</TabsTrigger>
+                                <TabsTrigger value="question">Question</TabsTrigger>
+                                <TabsTrigger value="options">Options</TabsTrigger>
+                                <TabsTrigger value="misc">Misc</TabsTrigger>
+                            </TabsList>
 
-                        <TabsContent value="schedule" className="mt-4">
-                            <ScheduleTab schedules={schedules} onSchedulesChange={setSchedules} />
-                        </TabsContent>
+                            <TabsContent value="schedule" className="mt-6">
+                                <ScheduleTab schedules={schedules} onSchedulesChange={setSchedules} />
+                            </TabsContent>
 
-                        <TabsContent value="question" className="mt-4">
-                            <QuestionsTab />
-                        </TabsContent>
+                            <TabsContent value="question" className="mt-6">
+                                <QuestionsTab />
+                            </TabsContent>
 
-                        <TabsContent value="options" className="mt-4">
-                            <div className="rounded-lg border bg-white p-8 text-center text-gray-500">
-                                Configure appointment options and pricing.
-                            </div>
-                        </TabsContent>
+                            <TabsContent value="options" className="mt-6">
+                                <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50/50 p-8 text-center">
+                                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
+                                        <span className="text-xl">⚙️</span>
+                                    </div>
+                                    <p className="font-medium text-slate-600">Configure appointment options and pricing</p>
+                                    <p className="mt-1 text-sm text-slate-400">Coming soon</p>
+                                </div>
+                            </TabsContent>
 
-                        <TabsContent value="misc" className="mt-4">
-                            <div className="rounded-lg border bg-white p-8 text-center text-gray-500">
-                                Miscellaneous settings and configurations.
-                            </div>
-                        </TabsContent>
-                    </Tabs>
+                            <TabsContent value="misc" className="mt-6">
+                                <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50/50 p-8 text-center">
+                                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
+                                        <span className="text-xl">📋</span>
+                                    </div>
+                                    <p className="font-medium text-slate-600">Miscellaneous settings and configurations</p>
+                                    <p className="mt-1 text-sm text-slate-400">Coming soon</p>
+                                </div>
+                            </TabsContent>
+                        </Tabs>
+                    </div>
                 </div>
             </main>
 

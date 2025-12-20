@@ -24,128 +24,134 @@ function CoreDetailsSection({ className, data, onChange }) {
     };
 
     return (
-        <div className={cn("grid grid-cols-2 gap-x-12 gap-y-4 px-6 py-4", className)}>
-            {/* Left Column */}
-            <div className="space-y-4">
-                {/* Duration */}
-                <div className="flex items-center gap-3">
-                    <Label className="w-20 text-gray-600">Duration</Label>
-                    <div className="flex items-center gap-2">
+        <div className={cn("p-4 sm:p-6", className)}>
+            <div className="grid gap-6 md:grid-cols-2 md:gap-x-12">
+                {/* Left Column */}
+                <div className="space-y-5">
+                    {/* Duration */}
+                    <div className="space-y-2">
+                        <Label className="text-sm font-medium text-slate-700">Duration</Label>
+                        <div className="flex items-center gap-3">
+                            <Input
+                                type="text"
+                                value={data.duration || "00:30"}
+                                onChange={(e) => handleChange("duration", e.target.value)}
+                                className="w-24 text-center rounded-xl border-slate-200 bg-slate-50/50 font-mono text-base focus:bg-white"
+                                placeholder="00:30"
+                            />
+                            <span className="text-sm text-slate-500">Hours:Minutes</span>
+                        </div>
+                    </div>
+
+                    {/* Location */}
+                    <div className="space-y-2">
+                        <Label className="text-sm font-medium text-slate-700">Location</Label>
                         <Input
                             type="text"
-                            value={data.duration || "00:30"}
-                            onChange={(e) => handleChange("duration", e.target.value)}
-                            className="w-20 text-center"
-                            placeholder="00:30"
+                            value={data.location || ""}
+                            onChange={(e) => handleChange("location", e.target.value)}
+                            className="rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white"
+                            placeholder="Doctor's Office"
                         />
-                        <span className="text-sm text-gray-600">Hours</span>
+                        {!data.location && (
+                            <p className="flex items-center gap-1.5 text-xs text-amber-600">
+                                <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                                If empty, this will be an Online Appointment
+                            </p>
+                        )}
                     </div>
                 </div>
 
-                {/* Location */}
-                <div className="flex items-center gap-3">
-                    <Label className="w-20 text-gray-600">Location</Label>
-                    <Input
-                        type="text"
-                        value={data.location || ""}
-                        onChange={(e) => handleChange("location", e.target.value)}
-                        className="flex-1"
-                        placeholder="Doctor's Office"
-                    />
-                </div>
-                {!data.location && (
-                    <p className="ml-[92px] text-xs text-amber-600">
-                        If location is empty → Online Appointment
-                    </p>
-                )}
-            </div>
-
-            {/* Right Column */}
-            <div className="space-y-4">
-                {/* Book Type */}
-                <div className="flex items-center gap-3">
-                    <Label className="w-24 text-gray-600">Book</Label>
-                    <RadioGroup
-                        value={data.bookType || "user"}
-                        onValueChange={(val) => handleChange("bookType", val)}
-                        className="flex items-center gap-4"
-                    >
-                        <div className="flex items-center gap-2">
-                            <RadioGroupItem value="user" id="book-user" />
-                            <Label htmlFor="book-user" className="font-normal cursor-pointer">User</Label>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <RadioGroupItem value="resources" id="book-resources" />
-                            <Label htmlFor="book-resources" className="font-normal cursor-pointer">Resources</Label>
-                        </div>
-                    </RadioGroup>
-                </div>
-
-                {/* Users/Resources Pills */}
-                <div className="flex items-center gap-3">
-                    <Label className="w-24 text-gray-600">user</Label>
-                    <div className="flex gap-2">
-                        {(data.availableUsers || []).map((user) => (
-                            <button
-                                key={user.id}
-                                onClick={() => toggleUser(user.id)}
-                                className={cn(
-                                    "flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-sm transition-colors",
-                                    (data.selectedUsers || []).includes(user.id)
-                                        ? "border-primary bg-primary/10 text-primary"
-                                        : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-                                )}
-                            >
-                                <span className="flex h-5 w-5 items-center justify-center rounded bg-gradient-to-r from-indigo-500 to-purple-500 text-[10px] font-bold text-white">
-                                    {user.code}
-                                </span>
-                                {user.name}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Assignment */}
-                <div className="flex items-center gap-3">
-                    <Label className="w-24 text-gray-600">Assignment</Label>
-                    <RadioGroup
-                        value={data.assignment || "automatically"}
-                        onValueChange={(val) => handleChange("assignment", val)}
-                        className="flex items-center gap-4"
-                    >
-                        <div className="flex items-center gap-2">
-                            <RadioGroupItem value="automatically" id="assign-auto" />
-                            <Label htmlFor="assign-auto" className="font-normal cursor-pointer">Automatically</Label>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <RadioGroupItem value="visitor" id="assign-visitor" />
-                            <Label htmlFor="assign-visitor" className="font-normal cursor-pointer">By visitor</Label>
-                        </div>
-                    </RadioGroup>
-                </div>
-
-                {/* Manage Capacity */}
-                <div className="flex items-start gap-3">
-                    <Label className="w-24 text-gray-600">Manage capacity</Label>
+                {/* Right Column */}
+                <div className="space-y-5">
+                    {/* Book Type */}
                     <div className="space-y-2">
-                        <div className="flex items-center gap-2">
+                        <Label className="text-sm font-medium text-slate-700">Book By</Label>
+                        <RadioGroup
+                            value={data.bookType || "user"}
+                            onValueChange={(val) => handleChange("bookType", val)}
+                            className="flex flex-wrap items-center gap-4"
+                        >
+                            <div className="flex items-center gap-2 rounded-xl bg-slate-50 px-4 py-2.5 transition-colors has-[:checked]:bg-primary/10 has-[:checked]:ring-1 has-[:checked]:ring-primary/30">
+                                <RadioGroupItem value="user" id="book-user" />
+                                <Label htmlFor="book-user" className="cursor-pointer font-normal">User</Label>
+                            </div>
+                            <div className="flex items-center gap-2 rounded-xl bg-slate-50 px-4 py-2.5 transition-colors has-[:checked]:bg-primary/10 has-[:checked]:ring-1 has-[:checked]:ring-primary/30">
+                                <RadioGroupItem value="resources" id="book-resources" />
+                                <Label htmlFor="book-resources" className="cursor-pointer font-normal">Resources</Label>
+                            </div>
+                        </RadioGroup>
+                    </div>
+
+                    {/* Users/Resources Pills */}
+                    <div className="space-y-2">
+                        <Label className="text-sm font-medium text-slate-700">Select Users</Label>
+                        <div className="flex flex-wrap gap-2">
+                            {(data.availableUsers || []).map((user) => (
+                                <button
+                                    key={user.id}
+                                    onClick={() => toggleUser(user.id)}
+                                    className={cn(
+                                        "flex items-center gap-2 rounded-xl border-2 px-3 py-2 text-sm font-medium transition-all duration-200",
+                                        (data.selectedUsers || []).includes(user.id)
+                                            ? "border-primary bg-primary/5 text-primary shadow-sm"
+                                            : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                                    )}
+                                >
+                                    <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-[10px] font-bold text-white shadow-sm">
+                                        {user.code}
+                                    </span>
+                                    {user.name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Assignment */}
+                    <div className="space-y-2">
+                        <Label className="text-sm font-medium text-slate-700">Assignment Method</Label>
+                        <RadioGroup
+                            value={data.assignment || "automatically"}
+                            onValueChange={(val) => handleChange("assignment", val)}
+                            className="flex flex-wrap items-center gap-4"
+                        >
+                            <div className="flex items-center gap-2 rounded-xl bg-slate-50 px-4 py-2.5 transition-colors has-[:checked]:bg-primary/10 has-[:checked]:ring-1 has-[:checked]:ring-primary/30">
+                                <RadioGroupItem value="automatically" id="assign-auto" />
+                                <Label htmlFor="assign-auto" className="cursor-pointer font-normal">Automatically</Label>
+                            </div>
+                            <div className="flex items-center gap-2 rounded-xl bg-slate-50 px-4 py-2.5 transition-colors has-[:checked]:bg-primary/10 has-[:checked]:ring-1 has-[:checked]:ring-primary/30">
+                                <RadioGroupItem value="visitor" id="assign-visitor" />
+                                <Label htmlFor="assign-visitor" className="cursor-pointer font-normal">By Visitor</Label>
+                            </div>
+                        </RadioGroup>
+                    </div>
+
+                    {/* Manage Capacity */}
+                    <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+                        <div className="flex items-start gap-3">
                             <Checkbox
                                 checked={data.manageCapacity || false}
                                 onCheckedChange={(val) => handleChange("manageCapacity", val)}
                                 id="manage-capacity"
+                                className="mt-0.5"
                             />
-                            <Label htmlFor="manage-capacity" className="font-normal cursor-pointer">
-                                Allow
-                                <Input
-                                    type="number"
-                                    value={data.simultaneousAppointments || 1}
-                                    onChange={(e) => handleChange("simultaneousAppointments", parseInt(e.target.value) || 1)}
-                                    className="mx-1.5 inline-block w-12 h-7 text-center"
-                                    disabled={!data.manageCapacity}
-                                    min={1}
-                                />
-                                Simultaneous Appointment(s) per user
-                            </Label>
+                            <div className="flex-1">
+                                <Label htmlFor="manage-capacity" className="cursor-pointer text-sm font-medium text-slate-700">
+                                    Manage Capacity
+                                </Label>
+                                <p className="mt-1 text-xs text-slate-500">
+                                    Allow{" "}
+                                    <Input
+                                        type="number"
+                                        value={data.simultaneousAppointments || 1}
+                                        onChange={(e) => handleChange("simultaneousAppointments", parseInt(e.target.value) || 1)}
+                                        className="mx-1 inline-block h-7 w-14 rounded-lg border-slate-200 text-center text-sm"
+                                        disabled={!data.manageCapacity}
+                                        min={1}
+                                    />{" "}
+                                    simultaneous appointment(s) per user
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>

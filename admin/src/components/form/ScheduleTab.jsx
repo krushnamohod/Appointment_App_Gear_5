@@ -29,58 +29,81 @@ function ScheduleTab({ className, schedules, onSchedulesChange }) {
     };
 
     return (
-        <div className={cn("space-y-2", className)}>
-            {/* Header */}
-            <div className="grid grid-cols-[200px_1fr_40px_1fr_40px] gap-4 px-2 py-2 text-sm font-medium text-gray-500">
-                <span>Every</span>
-                <span className="text-center">From</span>
+        <div className={cn("space-y-3", className)}>
+            {/* Desktop Header - Hidden on mobile */}
+            <div className="hidden rounded-xl bg-slate-100/80 px-4 py-3 sm:grid sm:grid-cols-[180px_1fr_40px_1fr_48px] sm:gap-4">
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Day</span>
+                <span className="text-center text-xs font-semibold uppercase tracking-wider text-slate-500">From</span>
                 <span></span>
-                <span className="text-center">To</span>
+                <span className="text-center text-xs font-semibold uppercase tracking-wider text-slate-500">To</span>
                 <span></span>
             </div>
 
             {/* Schedule Rows */}
-            <div className="space-y-1">
+            <div className="space-y-2">
                 {schedules.map((schedule, index) => (
                     <div
                         key={schedule.id}
-                        className="grid grid-cols-[200px_1fr_40px_1fr_40px] items-center gap-4 rounded-lg border bg-white px-2 py-2 hover:bg-gray-50"
+                        className="group rounded-xl border border-slate-200 bg-white p-3 transition-all duration-200 hover:border-slate-300 hover:shadow-sm sm:grid sm:grid-cols-[180px_1fr_40px_1fr_48px] sm:items-center sm:gap-4 sm:p-3"
                     >
-                        {/* Day */}
-                        <input
-                            type="text"
-                            value={schedule.day}
-                            onChange={(e) => handleRowChange(index, "day", e.target.value)}
-                            className="text-center h-8"
-                            placeholder="Monday"
-                        />
-                        {/* From Time */}
-                        <Input
-                            type="text"
-                            value={schedule.from}
-                            onChange={(e) => handleRowChange(index, "from", e.target.value)}
-                            className="text-center h-8"
-                            placeholder="9:00"
-                        />
-
-                        {/* Arrow */}
-                        <div className="flex justify-center">
-                            <ArrowRight className="h-4 w-4 text-red-400" />
+                        {/* Mobile Layout */}
+                        <div className="mb-3 flex items-center justify-between sm:hidden">
+                            <span className="text-xs font-medium uppercase tracking-wider text-slate-400">Schedule Entry</span>
+                            <button
+                                onClick={() => handleDeleteRow(index)}
+                                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                                aria-label="Delete schedule row"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </button>
                         </div>
 
-                        {/* To Time */}
-                        <Input
-                            type="text"
-                            value={schedule.to}
-                            onChange={(e) => handleRowChange(index, "to", e.target.value)}
-                            className="text-center h-8"
-                            placeholder="12:00"
-                        />
+                        {/* Day - Full width on mobile */}
+                        <div className="mb-3 sm:mb-0">
+                            <span className="mb-1 block text-xs text-slate-400 sm:hidden">Day</span>
+                            <input
+                                type="text"
+                                value={schedule.day}
+                                onChange={(e) => handleRowChange(index, "day", e.target.value)}
+                                className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50/50 px-3 text-center text-sm font-medium transition-colors focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 sm:h-9"
+                                placeholder="Monday"
+                            />
+                        </div>
 
-                        {/* Delete */}
+                        {/* Mobile: Time row */}
+                        <div className="flex items-center gap-2 sm:contents">
+                            <div className="flex-1">
+                                <span className="mb-1 block text-xs text-slate-400 sm:hidden">From</span>
+                                <Input
+                                    type="text"
+                                    value={schedule.from}
+                                    onChange={(e) => handleRowChange(index, "from", e.target.value)}
+                                    className="h-10 rounded-lg border-slate-200 bg-slate-50/50 text-center font-mono text-sm focus:bg-white sm:h-9"
+                                    placeholder="9:00"
+                                />
+                            </div>
+
+                            {/* Arrow */}
+                            <div className="flex h-10 w-10 items-center justify-center sm:h-9">
+                                <ArrowRight className="h-4 w-4 text-slate-300" />
+                            </div>
+
+                            <div className="flex-1">
+                                <span className="mb-1 block text-xs text-slate-400 sm:hidden">To</span>
+                                <Input
+                                    type="text"
+                                    value={schedule.to}
+                                    onChange={(e) => handleRowChange(index, "to", e.target.value)}
+                                    className="h-10 rounded-lg border-slate-200 bg-slate-50/50 text-center font-mono text-sm focus:bg-white sm:h-9"
+                                    placeholder="12:00"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Delete - Hidden on mobile (shown in header) */}
                         <button
                             onClick={() => handleDeleteRow(index)}
-                            className="flex h-8 w-8 items-center justify-center rounded hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+                            className="hidden h-9 w-9 items-center justify-center rounded-lg text-slate-300 transition-colors group-hover:text-slate-400 hover:!bg-red-50 hover:!text-red-500 sm:flex"
                             aria-label="Delete schedule row"
                         >
                             <Trash2 className="h-4 w-4" />
@@ -94,9 +117,9 @@ function ScheduleTab({ className, schedules, onSchedulesChange }) {
                 variant="ghost"
                 size="sm"
                 onClick={handleAddLine}
-                className="text-primary hover:text-primary/80"
+                className="mt-2 w-full rounded-xl border-2 border-dashed border-slate-200 text-primary hover:border-primary/30 hover:bg-primary/5 hover:text-primary sm:w-auto"
             >
-                + Add a Line
+                + Add Schedule Row
             </Button>
         </div>
     );
