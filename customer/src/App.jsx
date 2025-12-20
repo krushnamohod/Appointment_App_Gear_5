@@ -6,8 +6,8 @@ import LoginPage from './components/auth/LoginPage';
 import SignupPage from './components/auth/SignupPage';
 import OTPVerification from './components/auth/OTPVerification';
 import ForgotPassword from './components/auth/ForgotPassword';
+import HomePage from './components/home/HomePage';
 
-const HomePage = () => <div>Home</div>;
 
 function App() {
   const { isAuthenticated } = useAuthStore();
