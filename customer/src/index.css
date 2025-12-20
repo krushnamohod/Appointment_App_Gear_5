@@ -1,8 +1,168 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Base body styles */
-body {
-  @apply bg-gray-50 text-gray-900 antialiased;
+/* ========================================
+   THE PAPER PLANNER - Global Theme Styles
+   ======================================== */
+
+@layer base {
+  :root {
+    /* Color Tokens */
+    --color-paper: #F9F7F2;
+    --color-ink: #2D2D2D;
+    --color-terracotta: #E07A5F;
+    --color-sage: #81B29A;
+    --color-gold: #F2CC8F;
+    --color-error: #E63946;
+
+    /* Semantic Tokens */
+    --background: var(--color-paper);
+    --foreground: var(--color-ink);
+    --border-color: rgba(45, 45, 45, 0.15);
+  }
+
+  * {
+    border-color: var(--border-color);
+  }
+
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-feature-settings: 'liga' 1, 'calt' 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Serif Headings */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  /* Thin planner-style borders */
+  .border-planner {
+    border: 1px solid rgba(45, 45, 45, 0.12);
+  }
+}
+
+@layer components {
+
+  /* Card Component - Index card style */
+  .card-planner {
+    @apply bg-white border border-ink/10 rounded-card;
+    box-shadow: 3px 3px 0px rgba(45, 45, 45, 0.08);
+  }
+
+  .card-planner:hover {
+    box-shadow: 4px 4px 0px rgba(45, 45, 45, 0.12);
+  }
+
+  /* Primary Button - Terracotta */
+  .btn-primary {
+    @apply px-6 py-3 bg-terracotta text-white font-medium rounded-planner;
+    @apply hover:bg-terracotta-dark transition-colors;
+    box-shadow: 2px 2px 0px rgba(45, 45, 45, 0.15);
+  }
+
+  .btn-primary:hover {
+    box-shadow: 3px 3px 0px rgba(45, 45, 45, 0.2);
+  }
+
+  .btn-primary:active {
+    box-shadow: 1px 1px 0px rgba(45, 45, 45, 0.15);
+    transform: translate(1px, 1px);
+  }
+
+  /* Secondary Button */
+  .btn-secondary {
+    @apply px-6 py-3 bg-white text-ink font-medium rounded-planner;
+    @apply border border-ink/20 hover:bg-paper transition-colors;
+    box-shadow: 2px 2px 0px rgba(45, 45, 45, 0.08);
+  }
+
+  /* Input Fields - Clean planner style */
+  .input-planner {
+    @apply w-full px-4 py-3 bg-white text-ink rounded-planner;
+    @apply border border-ink/15 focus:border-terracotta focus:outline-none;
+    @apply placeholder:text-ink/40 transition-colors;
+  }
+
+  .input-planner:focus {
+    box-shadow: 0 0 0 2px rgba(224, 122, 95, 0.15);
+  }
+
+  /* Time Slot Styles */
+  .slot-available {
+    @apply bg-white border-2 border-sage text-sage-dark rounded-planner;
+    @apply hover:bg-sage/10 cursor-pointer transition-colors;
+  }
+
+  .slot-selected {
+    @apply bg-gold text-ink font-medium rounded-planner;
+    @apply border-2 border-gold-dark;
+  }
+
+  .slot-booked {
+    @apply bg-paper text-ink/40 border border-ink/10 rounded-planner;
+    @apply cursor-not-allowed opacity-60;
+  }
+
+  /* Calendar Grid Lines */
+  .calendar-grid {
+    @apply border border-ink/10;
+    background-image:
+      linear-gradient(rgba(45, 45, 45, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(45, 45, 45, 0.06) 1px, transparent 1px);
+    background-size: 100% 40px, 40px 100%;
+  }
+
+  /* Today Highlight */
+  .calendar-today {
+    @apply bg-gold/60 text-ink font-semibold rounded-planner;
+  }
+
+  /* Stat Card */
+  .stat-card {
+    @apply bg-white p-6 rounded-card border border-ink/10;
+    box-shadow: 3px 3px 0px rgba(45, 45, 45, 0.06);
+  }
+}
+
+@layer utilities {
+
+  /* Paper texture overlay (optional) */
+  .paper-texture {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.03;
+  }
+
+  /* Thin underline divider */
+  .divider-planner {
+    @apply border-b border-ink/10;
+  }
+
+  /* Scrollbar styling */
+  .scrollbar-planner::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-planner::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-planner::-webkit-scrollbar-thumb {
+    background: rgba(45, 45, 45, 0.2);
+    border-radius: 3px;
+  }
 }

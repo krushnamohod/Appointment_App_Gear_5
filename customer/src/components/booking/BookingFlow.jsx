@@ -1,12 +1,19 @@
-import { useBookingStore } from '../../context/BookingContext';
-import ProgressSteps from './ProgressSteps';
-import SelectServiceStep from './SelectServiceStep';
-import SelectProviderStep from './SelectProviderStep';
-import SelectDateTimeStep from './SelectDateTimeStep';
-import DetailsPaymentStep from './DetailsPaymentStep';
 import { useEffect, useState } from 'react';
+import { useBookingStore } from '../../context/BookingContext';
 import { getServices } from '../../services/appointmentService';
+import ConfirmationStep from './ConfirmationStep';
+import DetailsPaymentStep from './DetailsPaymentStep';
+import PaymentStep from './PaymentStep';
+import ProgressSteps from './ProgressSteps';
+import SelectDateTimeStep from './SelectDateTimeStep';
+import SelectProviderStep from './SelectProviderStep';
+import SelectServiceStep from './SelectServiceStep';
 
+/**
+ * @intent Booking flow with 6 steps: Service, Provider, DateTime, Details, Confirmation/Payment
+ * Free: Service → Provider → DateTime → Details → Confirmation
+ * Paid: Service → Provider → DateTime → Details → Payment → Confirmation
+ */
 const BookingFlow = () => {
   const { step } = useBookingStore();
   const [services, setServices] = useState([]);
@@ -17,14 +24,15 @@ const BookingFlow = () => {
 
   return (
     <div className="max-w-3xl mx-auto p-6">
-      <ProgressSteps currentStep={step} />
+      {/* Only show progress steps for steps 1-4 */}
+      {step <= 4 && <ProgressSteps currentStep={step} />}
 
-      {step === 1 && (
-        <SelectServiceStep services={services} />
-      )}
+      {step === 1 && <SelectServiceStep services={services} />}
       {step === 2 && <SelectProviderStep />}
       {step === 3 && <SelectDateTimeStep />}
       {step === 4 && <DetailsPaymentStep />}
+      {step === 5 && <ConfirmationStep />}
+      {step === 6 && <PaymentStep />}
     </div>
   );
 };

@@ -6,7 +6,6 @@ import { useAuthStore } from './context/AuthContext';
 import ForgotPassword from './components/auth/ForgotPassword';
 import LoginPage from './components/auth/LoginPage';
 import OTPVerification from './components/auth/OTPVerification';
-import SignupPage from './components/auth/SignupPage';
 
 // App Components
 import BookingFlow from './components/booking/BookingFlow';
@@ -25,16 +24,16 @@ function App() {
       <Toaster position="top-right" />
       <Navbar />
 
-      <main className="min-h-screen bg-gray-50">
+      <main className="min-h-screen">
         <Routes>
-          {/* Auth Routes */}
+          {/* Auth Routes - LoginPage now handles both login and signup */}
           <Route
             path="/login"
             element={isAuthenticated ? <Navigate to="/" /> : <LoginPage />}
           />
           <Route
             path="/signup"
-            element={isAuthenticated ? <Navigate to="/" /> : <SignupPage />}
+            element={isAuthenticated ? <Navigate to="/" /> : <LoginPage />}
           />
           <Route
             path="/forgot-password"

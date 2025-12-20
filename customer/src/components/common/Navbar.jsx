@@ -1,65 +1,116 @@
-import { Calendar, Home, LogOut, User } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Calendar, Home, LogOut, Menu, User, X } from 'lucide-react';
+import { useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../context/AuthContext';
 
 /**
- * @intent Main navigation bar with logout functionality
+ * @intent Paper Planner styled navigation bar with warm, tactile design
  */
 const Navbar = () => {
+    const { isAuthenticated, logout, user } = useAuthStore();
     const navigate = useNavigate();
-    const { user, logout, isAuthenticated } = useAuthStore();
+    const [mobileOpen, setMobileOpen] = useState(false);
+
+    if (!isAuthenticated) return null;
 
     const handleLogout = () => {
         logout();
         navigate('/login');
     };
 
-    if (!isAuthenticated) return null;
+    const navLinks = [
+        { to: '/', icon: Home, label: 'Home' },
+        { to: '/book', icon: Calendar, label: 'Book' },
+        { to: '/profile', icon: User, label: 'Profile' },
+    ];
 
     return (
-        <nav className="bg-white shadow-sm sticky top-0 z-50">
-            <div className="max-w-7xl mx-auto px-4">
-                <div className="flex justify-between items-center h-16">
+        <nav className="bg-white border-b border-ink/10" style={{ boxShadow: '0 2px 0px rgba(45, 45, 45, 0.04)' }}>
+            <div className="max-w-6xl mx-auto px-4">
+                <div className="flex items-center justify-between h-16">
                     {/* Logo */}
-                    <Link to="/" className="text-xl font-bold text-primary">
-                        BookNow
-                    </Link>
+                    <NavLink to="/" className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-terracotta rounded-planner flex items-center justify-center"
+                            style={{ boxShadow: '2px 2px 0px rgba(45, 45, 45, 0.1)' }}>
+                            <Calendar className="text-white" size={20} />
+                        </div>
+                        <span className="font-serif text-xl text-ink hidden sm:block">Planner</span>
+                    </NavLink>
 
-                    {/* Nav Links */}
-                    <div className="flex items-center gap-6">
-                        <Link
-                            to="/"
-                            className="flex items-center gap-2 text-gray-600 hover:text-primary transition"
-                        >
-                            <Home size={20} />
-                            <span className="hidden sm:inline">Home</span>
-                        </Link>
+                    {/* Desktop Navigation */}
+                    <div className="hidden md:flex items-center gap-1">
+                        {navLinks.map((link) => (
+                            <NavLink
+                                key={link.to}
+                                to={link.to}
+                                className={({ isActive }) => `
+                  flex items-center gap-2 px-4 py-2 rounded-planner text-sm font-medium transition-colors
+                  ${isActive
+                                        ? 'bg-gold/40 text-ink'
+                                        : 'text-ink/60 hover:text-ink hover:bg-paper'
+                                    }
+                `}
+                            >
+                                <link.icon size={18} />
+                                {link.label}
+                            </NavLink>
+                        ))}
+                    </div>
 
-                        <Link
-                            to="/book"
-                            className="flex items-center gap-2 text-gray-600 hover:text-primary transition"
-                        >
-                            <Calendar size={20} />
-                            <span className="hidden sm:inline">Book</span>
-                        </Link>
-
-                        <Link
-                            to="/profile"
-                            className="flex items-center gap-2 text-gray-600 hover:text-primary transition"
-                        >
-                            <User size={20} />
-                            <span className="hidden sm:inline">{user?.name || 'Profile'}</span>
-                        </Link>
-
+                    {/* User & Logout */}
+                    <div className="hidden md:flex items-center gap-4">
+                        <span className="text-sm text-ink/60">
+                            {user?.name || user?.email}
+                        </span>
                         <button
                             onClick={handleLogout}
-                            className="flex items-center gap-2 text-gray-600 hover:text-error transition"
+                            className="flex items-center gap-2 px-4 py-2 text-sm text-ink/60 hover:text-error border border-ink/10 rounded-planner hover:border-error/30 transition-colors"
                         >
-                            <LogOut size={20} />
-                            <span className="hidden sm:inline">Logout</span>
+                            <LogOut size={16} />
+                            Logout
                         </button>
                     </div>
+
+                    {/* Mobile Menu Button */}
+                    <button
+                        onClick={() => setMobileOpen(!mobileOpen)}
+                        className="md:hidden w-10 h-10 flex items-center justify-center text-ink/60"
+                    >
+                        {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+                    </button>
                 </div>
+
+                {/* Mobile Navigation */}
+                {mobileOpen && (
+                    <div className="md:hidden py-4 border-t border-ink/10">
+                        <div className="space-y-2">
+                            {navLinks.map((link) => (
+                                <NavLink
+                                    key={link.to}
+                                    to={link.to}
+                                    onClick={() => setMobileOpen(false)}
+                                    className={({ isActive }) => `
+                    flex items-center gap-3 px-4 py-3 rounded-planner text-sm font-medium transition-colors
+                    ${isActive
+                                            ? 'bg-gold/40 text-ink'
+                                            : 'text-ink/60 hover:text-ink hover:bg-paper'
+                                        }
+                  `}
+                                >
+                                    <link.icon size={20} />
+                                    {link.label}
+                                </NavLink>
+                            ))}
+                            <button
+                                onClick={handleLogout}
+                                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-error hover:bg-error/5 rounded-planner transition-colors"
+                            >
+                                <LogOut size={20} />
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </nav>
     );

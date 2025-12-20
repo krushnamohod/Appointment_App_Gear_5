@@ -13,7 +13,10 @@ const MOCK_SERVICES = [
     price: 25,
     image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400',
     manageCapacity: true,
-    maxCapacity: 5
+    maxCapacity: 5,
+    questions: [
+      { id: 'notes', label: 'Special Notes', type: 'textarea', required: false }
+    ]
   },
   {
     id: 2,
@@ -57,7 +60,11 @@ const MOCK_SERVICES = [
     price: 0,
     image: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=400',
     manageCapacity: true,
-    maxCapacity: 4
+    maxCapacity: 4,
+    questions: [
+      { id: 'symptoms', label: 'Symptoms', type: 'textarea', required: true },
+      { id: 'allergies', label: 'Any Allergies?', type: 'text', required: false }
+    ]
   },
   {
     id: 6,
