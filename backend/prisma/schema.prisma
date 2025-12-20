@@ -44,6 +44,7 @@ model Service {
   manageCapacity        Boolean   @default(false)
   questions             Json?
   venue                 String?
+  resourceType          String?   // e.g., 'COURT', 'VENUE'
   
   // Options tab fields
   manualConfirmation    Boolean   @default(false)
