@@ -42,6 +42,7 @@ export async function createBooking(req, res, next) {
     try {
       // ✅ Transaction-safe booking with Atomic Check
       const booking = await prisma.$transaction(async (tx) => {
+
         // 1. Fetch slot to get capacity and service info
         const slot = await tx.slot.findUnique({
           where: { id: finalSlotId },

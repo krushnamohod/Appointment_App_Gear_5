@@ -1,0 +1,8 @@
+
+[ENTRY 2025-12-20T17:45:50.940Z] Body: {"serviceId":"3b33e2e2-e2d5-4182-85fd-5ca23780ab04","slotId":"0f065a7d-b2c8-4cad-9f90-56399b90d755","date":"2025-12-20"}
+[Booking 2025-12-20T17:45:51.148Z] Processing slotId: 0f065a7d-b2c8-4cad-9f90-56399b90d755
+[Booking] Found slot. Booked: 0, Capacity: 1, ID: 0f065a7d-b2c8-4cad-9f90-56399b90d755
+
+[ENTRY 2025-12-20T17:46:43.927Z] Body: {"serviceId":"3b33e2e2-e2d5-4182-85fd-5ca23780ab04","slotId":"1427ed0c-f3cd-4393-9c76-36d00d2cafc4","date":"2025-12-20"}
+[Booking 2025-12-20T17:46:44.132Z] Processing slotId: 1427ed0c-f3cd-4393-9c76-36d00d2cafc4
+[Booking] Found slot. Booked: 0, Capacity: 1, ID: 1427ed0c-f3cd-4393-9c76-36d00d2cafc4

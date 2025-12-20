@@ -80,7 +80,7 @@ const BookingFlow = () => {
           md:translate-y-0 ${isOpen ? 'translate-y-0' : 'translate-y-full'}
           
           /* Desktop: Right Sidebar */
-          md:top-0 md:bottom-0 md:left-auto md:right-0 md:w-[480px] md:h-full md:rounded-none
+          md:top-0 md:bottom-0 md:left-auto md:right-0 md:w-[600px] md:h-full md:rounded-none
           ${isOpen ? 'md:translate-x-0' : 'md:translate-x-full'}
         `}
       >

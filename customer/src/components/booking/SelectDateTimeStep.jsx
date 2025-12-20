@@ -1,8 +1,9 @@
-import { ChevronLeft, ChevronRight, Clock, Minus, Plus, Users, Wifi, WifiOff } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, Minus, Plus, Users, Wifi, WifiOff, Loader2 } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import { useBookingStore } from '../../context/BookingContext';
-import { getAvailableSlots } from '../../services/appointmentService';
+import { getAvailableSlots, generateSlots, getProviders } from '../../services/appointmentService';
 import { subscribeToSlots, unsubscribeFromSlots, onSlotUpdate, connectSocket } from '../../services/socket';
+import toast from 'react-hot-toast';
 
 /**
  * @intent Paper Planner styled date/time selection with 2-column layout
@@ -18,6 +19,7 @@ const SelectDateTimeStep = () => {
   const [selectedSlotId, setSelectedSlotId] = useState(null);
   const [numberOfPeople, setNumberOfPeople] = useState(1);
   const [isConnected, setIsConnected] = useState(false);
+  const [loadingValues, setLoadingValues] = useState(false);
 
   const manageCapacity = booking.service?.manageCapacity || false;
   const maxCapacity = booking.service?.capacity || 10;
@@ -82,30 +84,11 @@ const SelectDateTimeStep = () => {
       // Fetch all available slots for the service
       getAvailableSlots(null, dateStr, booking.service?.id)
         .then((res) => {
-          if (res.data?.length > 0) {
-            setSlots(res.data);
-          } else {
-            // Fallback mock slots
-            setSlots([
-              { id: 'mock1', time: '9:00', available: true },
-              { id: 'mock2', time: '9:45', available: true },
-              { id: 'mock3', time: '10:00', available: true },
-              { id: 'mock4', time: '10:45', available: false },
-              { id: 'mock5', time: '11:00', available: true },
-              { id: 'mock6', time: '11:45', available: true },
-              { id: 'mock7', time: '12:00', available: true },
-              { id: 'mock8', time: '12:45', available: false },
-            ]);
-          }
+          setSlots(res.data || []);
         })
-        .catch(() => {
-          // Fallback on error
-          setSlots([
-            { id: 'mock1', time: '9:00', available: true },
-            { id: 'mock2', time: '9:45', available: true },
-            { id: 'mock3', time: '10:00', available: true },
-            { id: 'mock4', time: '10:45', available: false },
-          ]);
+        .catch((err) => {
+          console.error("Failed to load slots", err);
+          setSlots([]);
         });
     }
   }, [booking.provider, booking.service?.id, selectedDate]);
@@ -160,6 +143,46 @@ const SelectDateTimeStep = () => {
     if (slot.available) {
       setSelectedTime(slot.time);
       setSelectedSlotId(slot.id);
+    }
+  };
+
+  const handleGenerateSlots = async () => {
+    if (!booking.service?.id) return;
+
+    try {
+      setLoadingValues(true);
+      const dateStr = selectedDate.toISOString().split('T')[0];
+
+      let providerId = booking.provider?.id;
+
+      // If ANY provider, fetch first available provider to generate slots for
+      if (!providerId || booking.provider === 'ANY') {
+        const providersRes = await getProviders(booking.service.id);
+        if (providersRes.data && providersRes.data.length > 0) {
+          providerId = providersRes.data[0].id;
+        } else {
+          toast.error("No providers found for this service");
+          return;
+        }
+      }
+
+      await generateSlots({
+        providerId: providerId,
+        serviceId: booking.service.id,
+        date: dateStr
+      });
+      toast.success("Test slots generated!");
+
+      // Refresh slots
+      // If ANY, pass null as providerId (handled by service)
+      const fetchProviderId = booking.provider === 'ANY' ? null : providerId;
+      const res = await getAvailableSlots(fetchProviderId, dateStr, booking.service.id);
+      setSlots(res.data || []);
+    } catch (err) {
+      toast.error("Failed to generate slots");
+      console.error(err);
+    } finally {
+      setLoadingValues(false);
     }
   };
 
@@ -256,8 +279,20 @@ const SelectDateTimeStep = () => {
 
           <div className="grid grid-cols-2 gap-3">
             {slots.length === 0 ? (
-              <div className="col-span-2 text-center py-8 text-ink/50 border border-ink/10 rounded-planner">
-                No slots available
+              <div className="col-span-2 text-center py-8 text-ink/50 border border-ink/10 rounded-planner flex flex-col items-center gap-3">
+                <Clock className="w-8 h-8 opacity-20" />
+                <span>No slots available</span>
+
+                {(booking.provider?.id || booking.provider === 'ANY') && (
+                  <button
+                    onClick={handleGenerateSlots}
+                    disabled={loadingValues}
+                    className="mt-2 text-xs bg-ink/5 hover:bg-ink/10 text-ink px-3 py-1.5 rounded-full transition-colors flex items-center gap-2"
+                  >
+                    {loadingValues && <Loader2 size={12} className="animate-spin" />}
+                    Generate Test Slots
+                  </button>
+                )}
               </div>
             ) : (
               slots.map((slot) => (
