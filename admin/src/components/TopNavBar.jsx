@@ -1,16 +1,13 @@
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-import { BarChart3, Settings } from "lucide-react";
+import { Settings } from "lucide-react";
 
 /**
  * @intent Top navigation bar with logo and action buttons
  * @param {object} props - Component props
- * @param {function} props.onReporting - Reporting button click handler
  * @param {function} props.onSettings - Settings button click handler
- * @param {function} props.onBack - Back button click handler (optional)
- * @param {boolean} props.showBack - Show back button
  */
-function TopNavBar({ className, onReporting, onSettings }) {
+function TopNavBar({ className, onSettings }) {
     return (
         <header
             className={cn(
@@ -38,15 +35,6 @@ function TopNavBar({ className, onReporting, onSettings }) {
 
             {/* Right Actions */}
             <nav className="flex items-center gap-2" aria-label="Main navigation">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-gray-600 hover:text-gray-900"
-                    onClick={onReporting}
-                >
-                    <BarChart3 className="mr-2 h-4 w-4" aria-hidden="true" />
-                    Reporting
-                </Button>
                 <Button
                     variant="ghost"
                     size="sm"

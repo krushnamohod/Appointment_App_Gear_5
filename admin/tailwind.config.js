@@ -6,7 +6,21 @@ export default {
     ],
     theme: {
         extend: {
+            // Paper Planner Color Palette
             colors: {
+                // Core Paper Planner tokens
+                paper: "#F9F7F2",
+                ink: {
+                    DEFAULT: "#2D2D2D",
+                    light: "#5A5A5A",
+                },
+                terracotta: "#E07A5F",
+                sage: "#81B29A",
+                gold: "#F2CC8F",
+                slate: "#3D405B",
+                sheet: "#FFFFFF",
+
+                // Existing shadcn/ui tokens (preserved for compatibility)
                 border: "hsl(214.3 31.8% 91.4%)",
                 input: "hsl(214.3 31.8% 91.4%)",
                 ring: "hsl(221.2 83.2% 53.3%)",
@@ -37,6 +51,13 @@ export default {
                     foreground: "hsl(222.2 84% 4.9%)",
                 },
             },
+            // Typography
+            fontFamily: {
+                serif: ["Merriweather", "Georgia", "serif"],
+                sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
+                mono: ["JetBrains Mono", "Menlo", "Monaco", "monospace"],
+            },
+            // Border Radius
             borderRadius: {
                 lg: "0.5rem",
                 md: "calc(0.5rem - 2px)",

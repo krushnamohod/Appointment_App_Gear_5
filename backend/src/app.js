@@ -1,8 +1,8 @@
-import express from "express";
-import dotenv from "dotenv";
 import cors from "cors";
-import morgan from "morgan";
+import dotenv from "dotenv";
+import express from "express";
 import { createServer } from "http";
+import morgan from "morgan";
 import { initializeSocket } from "./services/socketService.js";
 
 dotenv.config();
@@ -38,10 +38,12 @@ app.use((req, res, next) => {
 });
 
 import authRoutes from "./routes/auth.route.js";
-import serviceRoutes from "./routes/service.route.js";
-import providerRoutes from "./routes/provider.route.js";
-import slotRoutes from "./routes/slot.route.js";
 import bookingRoutes from "./routes/booking.route.js";
+import providerRoutes from "./routes/provider.route.js";
+import reportingRoutes from "./routes/reporting.route.js";
+import serviceRoutes from "./routes/service.route.js";
+import slotRoutes from "./routes/slot.route.js";
+import userRoutes from "./routes/user.route.js";
 
 app.get("/", (req, res) => {
   res.send("Appointment Booking Backend Running 🚀 (with Socket.IO)");
@@ -52,6 +54,8 @@ app.use("/api/services", serviceRoutes);
 app.use("/api/providers", providerRoutes);
 app.use("/api/slots", slotRoutes);
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/reporting", reportingRoutes);
 
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 

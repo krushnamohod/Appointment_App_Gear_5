@@ -1,20 +1,191 @@
+/* Google Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ===========================================
+   BASE LAYER - Global Defaults
+   =========================================== */
 @layer base {
   * {
-    border-color: hsl(214.3 31.8% 91.4%);
+    border-color: #E5E7EB;
   }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
   body {
-    background-color: hsl(210 40% 98%);
-    color: hsl(222.2 84% 4.9%);
+    background-color: #F9F7F2;
+    /* bg-paper */
+    color: #2D2D2D;
+    /* text-ink */
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  /* Serif headings for the stationery look */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Merriweather', Georgia, serif;
   }
 }
 
+/* ===========================================
+   COMPONENT LAYER - Reusable Design System
+   =========================================== */
+@layer components {
+
+  /* Primary Action Button */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2;
+    @apply px-6 py-2 rounded-md;
+    @apply font-sans font-medium text-white;
+    @apply transition-all duration-200;
+    background-color: #E07A5F;
+    /* terracotta */
+  }
+
+  .btn-primary:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:focus {
+    @apply outline-none ring-2 ring-offset-2;
+    --tw-ring-color: #E07A5F;
+  }
+
+  .btn-primary:disabled {
+    @apply opacity-50 cursor-not-allowed;
+    transform: none;
+  }
+
+  /* Outline Button */
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2;
+    @apply px-6 py-2 rounded-md;
+    @apply font-sans font-medium;
+    @apply bg-transparent;
+    @apply transition-all duration-200;
+    border: 2px solid #2D2D2D;
+    /* ink */
+    color: #2D2D2D;
+  }
+
+  .btn-outline:hover {
+    background-color: #2D2D2D;
+    color: white;
+  }
+
+  .btn-outline:focus {
+    @apply outline-none ring-2 ring-offset-2;
+    --tw-ring-color: #3D405B;
+  }
+
+  /* Input Field */
+  .input-field {
+    @apply w-full px-4 py-2.5 rounded-md;
+    @apply font-sans text-sm;
+    @apply bg-white;
+    @apply transition-all duration-200;
+    border: 1px solid #D1D5DB;
+    color: #2D2D2D;
+  }
+
+  .input-field::placeholder {
+    color: #5A5A5A;
+    /* ink-light */
+  }
+
+  .input-field:focus {
+    @apply outline-none;
+    border-color: #E07A5F;
+    box-shadow: 0 0 0 3px rgba(224, 122, 95, 0.15);
+  }
+
+  /* Paper Card */
+  .card-paper {
+    @apply rounded-lg p-6;
+    background-color: white;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  }
+
+  /* Sidebar Navigation (Admin) */
+  .sidebar-nav {
+    background-color: #3D405B;
+    /* slate */
+    @apply text-white;
+  }
+
+  /* Available Slot Badge */
+  .badge-available {
+    @apply inline-flex items-center px-2 py-1 rounded text-xs font-medium;
+    background-color: #81B29A;
+    /* sage */
+    color: white;
+  }
+
+  /* Selected/Highlight Badge */
+  .badge-selected {
+    @apply inline-flex items-center px-2 py-1 rounded text-xs font-medium;
+    background-color: #F2CC8F;
+    /* gold */
+    color: #2D2D2D;
+  }
+
+  /* Data Table Styling */
+  .table-paper {
+    @apply w-full font-sans text-sm;
+  }
+
+  .table-paper thead {
+    background-color: #F9F7F2;
+    border-bottom: 1px solid #E5E7EB;
+  }
+
+  .table-paper th {
+    @apply px-4 py-3 text-left font-medium;
+    color: #5A5A5A;
+  }
+
+  .table-paper td {
+    @apply px-4 py-3;
+    border-bottom: 1px solid #E5E7EB;
+  }
+
+  .table-paper tr:hover {
+    background-color: rgba(249, 247, 242, 0.5);
+  }
+
+  /* Monospace for IDs and timestamps */
+  .mono-text {
+    font-family: 'JetBrains Mono', Menlo, Monaco, monospace;
+    @apply text-sm;
+  }
+}
+
+/* ===========================================
+   UTILITIES LAYER
+   =========================================== */
 @layer utilities {
   .scrollbar-thin {
     scrollbar-width: thin;
+  }
+
+  .font-heading {
+    font-family: 'Merriweather', Georgia, serif;
+  }
+
+  /* Text color utilities for ink variants */
+  .text-ink-light {
+    color: #5A5A5A;
   }
 }

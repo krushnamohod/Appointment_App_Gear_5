@@ -1,24 +1,25 @@
 import { AnimatedSidebar } from "@/components/AnimatedSidebar";
-import { ReportingModal, SettingsModal } from "@/components/SettingsModal";
+import { SettingsModal } from "@/components/SettingsModal";
 import { TopNavBar } from "@/components/TopNavBar";
 import "@/index.css";
 import { useAdminAuthStore } from "@/store/authStore";
 import { AppointmentsModule } from "@/views/AppointmentsModule";
 import { HelpCenterView } from "@/views/HelpCenterView";
 import LoginPage from "@/views/LoginPage";
-import { ResourcesSettingsView, UserSettingsView } from "@/views/SettingsViews";
-import { ServiceManagement } from "@/views/ServiceManagement";
 import { ProviderManagement } from "@/views/ProviderManagement";
-import { Box, Calendar, HelpCircle, LogOut, Settings, User } from "lucide-react";
+import { ReportingView } from "@/views/ReportingView";
+import { ServiceManagement } from "@/views/ServiceManagement";
+import { ResourcesSettingsView, UserSettingsView } from "@/views/SettingsViews";
+import { UserRoleManagement } from "@/views/UserRoleManagement";
+import { BarChart3, Box, Calendar, HelpCircle, LogOut, Settings, User, Users } from "lucide-react";
 import { useState } from "react";
 
 /**
  * @intent Main app component with auth routing and sidebar layout
  */
 function App() {
-    const { isAuthenticated, logout } = useAdminAuthStore();
+    const { isAuthenticated, logout, role } = useAdminAuthStore();
     const [showSettings, setShowSettings] = useState(false);
-    const [showReporting, setShowReporting] = useState(false);
 
     // Show login page if not authenticated
     if (!isAuthenticated) {
@@ -29,12 +30,24 @@ function App() {
         logout();
     };
 
+    // Build sidebar items - Role Management only for ADMIN
     const sidebarItems = [
         {
             title: "Appointment View",
             Icon: Calendar,
             Content: AppointmentsModule,
         },
+        {
+            title: "Reporting",
+            Icon: BarChart3,
+            Content: ReportingView,
+        },
+        // Only show Role Management for ADMIN users
+        ...(role === "ADMIN" ? [{
+            title: "Role Management",
+            Icon: Users,
+            Content: UserRoleManagement,
+        }] : []),
         {
             title: "Settings",
             Icon: Settings,
@@ -81,7 +94,6 @@ function App() {
         <div className="flex flex-col h-screen overflow-hidden">
             {/* Universal Top Navigation */}
             <TopNavBar
-                onReporting={() => setShowReporting(true)}
                 onSettings={() => setShowSettings(true)}
             />
 
@@ -92,9 +104,9 @@ function App() {
 
             {/* Global Modals */}
             <SettingsModal open={showSettings} onOpenChange={setShowSettings} />
-            <ReportingModal open={showReporting} onOpenChange={setShowReporting} />
         </div>
     );
 }
 
 export default App;
+
