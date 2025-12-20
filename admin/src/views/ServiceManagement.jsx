@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Trash, Edit, X, Save } from "lucide-react";
 import { useAdminAuthStore } from "@/store/authStore";
+import { ImageUpload } from "@/components/ImageUpload";
 
 const API_URL = "http://localhost:3000/api";
 
@@ -218,13 +219,11 @@ export function ServiceManagement() {
                             </div>
                         </div>
 
-                        <div className="col-span-2 md:col-span-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-                            <input
-                                className="border p-2 rounded w-full"
-                                placeholder="https://images.unsplash.com/photo..."
-                                value={currentService.image || ""}
-                                onChange={e => setCurrentService({ ...currentService, image: e.target.value })}
+                        <div className="col-span-2 md:col-span-4 border-t pt-4">
+                            <ImageUpload
+                                currentImage={currentService.image}
+                                onUploadSuccess={(url) => setCurrentService({ ...currentService, image: url })}
+                                label="Service Image"
                             />
                         </div>
                     </div>

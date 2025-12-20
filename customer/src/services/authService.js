@@ -33,6 +33,20 @@ export const resetPassword = (token, password) => {
   return Promise.resolve({ data: { message: 'Password reset successful' } });
 };
 
+export const updateProfile = (data) => {
+  return api.put('/auth/profile', data);
+};
+
+export const uploadImage = (file) => {
+  const formData = new FormData();
+  formData.append('image', file);
+  return api.post('/upload/single', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+};
+
 export const logout = () => {
   localStorage.removeItem('token');
   return Promise.resolve();
