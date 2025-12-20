@@ -30,7 +30,7 @@ const Tabs = React.forwardRef(({ className, defaultValue, value, onValueChange, 
 });
 Tabs.displayName = "Tabs";
 
-const TabsList = React.forwardRef(({ className, ...props }, ref) => (
+const TabsList = React.forwardRef(({ className, selectedValue, onValueChange, children, ...props }, ref) => (
     <div
         ref={ref}
         className={cn(
@@ -39,7 +39,14 @@ const TabsList = React.forwardRef(({ className, ...props }, ref) => (
         )}
         role="tablist"
         {...props}
-    />
+    >
+        {React.Children.map(children, child => {
+            if (React.isValidElement(child)) {
+                return React.cloneElement(child, { selectedValue, onValueChange });
+            }
+            return child;
+        })}
+    </div>
 ));
 TabsList.displayName = "TabsList";
 
