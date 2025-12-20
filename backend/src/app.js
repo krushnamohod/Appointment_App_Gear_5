@@ -2,10 +2,19 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import morgan from "morgan";
+import { createServer } from "http";
+import { initializeSocket } from "./services/socketService.js";
 
 dotenv.config();
 
 const app = express();
+
+// Create HTTP server for Socket.IO
+const httpServer = createServer(app);
+
+// Initialize Socket.IO
+initializeSocket(httpServer);
+
 app.use(express.json());
 app.use(cors({
   origin: [
@@ -35,13 +44,8 @@ import slotRoutes from "./routes/slot.route.js";
 import bookingRoutes from "./routes/booking.route.js";
 
 app.get("/", (req, res) => {
-  res.send("Appointment Booking Backend Running 🚀");
+  res.send("Appointment Booking Backend Running 🚀 (with Socket.IO)");
 });
-
-
-// import slotLockRoutes from "./routes/slotLock.route.js"; // Consolidating slot routes
-// app.use("/api/slots", slotLockRoutes);
-
 
 app.use("/api/auth", authRoutes);
 app.use("/api/services", serviceRoutes);
@@ -54,6 +58,6 @@ import { errorMiddleware } from "./middlewares/error.middleware.js";
 app.use(errorMiddleware); // Error handler must be last
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () =>
-  console.log(`🚀 Server running on http://localhost:${PORT}`)
+httpServer.listen(PORT, () =>
+  console.log(`🚀 Server running on http://localhost:${PORT} (Socket.IO enabled)`)
 );

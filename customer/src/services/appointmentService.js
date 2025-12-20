@@ -5,7 +5,8 @@ export const getServices = async () => {
 };
 
 export const getProviders = async (serviceId) => {
-  return api.get('/providers'); // Ideally filter by serviceId if backend supports it
+  const params = serviceId ? { serviceId } : {};
+  return api.get('/providers', { params });
 };
 
 export const getAvailableSlots = async (providerId, date) => {

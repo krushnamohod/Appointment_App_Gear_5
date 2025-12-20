@@ -6,7 +6,18 @@ export async function createProvider(req, res) {
 }
 
 export async function listProviders(req, res) {
-  const providers = await prisma.provider.findMany();
+  const { serviceId } = req.query;
+
+  const where = serviceId ? { serviceId } : {};
+
+  const providers = await prisma.provider.findMany({
+    where,
+    include: {
+      service: {
+        select: { name: true }
+      }
+    }
+  });
   res.json(providers);
 }
 
