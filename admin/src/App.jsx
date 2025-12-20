@@ -16,6 +16,7 @@ function App() {
     const [showReporting, setShowReporting] = useState(false);
 
     const sidebarItems = [
+
         {
             title: "Appointment View",
             Icon: Calendar,
