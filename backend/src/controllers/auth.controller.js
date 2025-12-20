@@ -1,6 +1,6 @@
-import prisma from "../prisma/client.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import prisma from "../prisma/client.js";
 
 export async function signup(req, res) {
   const { name, email, password, role } = req.body;
@@ -27,5 +27,7 @@ export async function login(req, res) {
     expiresIn: "7d",
   });
 
-  res.json({ token });
+  // Return user without password
+  const { password: _, ...userWithoutPassword } = user;
+  res.json({ user: userWithoutPassword, token });
 }

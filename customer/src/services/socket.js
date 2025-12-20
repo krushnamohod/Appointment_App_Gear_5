@@ -1,12 +1,12 @@
-import { io } from 'socket.io-client';
 import toast from 'react-hot-toast';
+import { io } from 'socket.io-client';
 
 let socket;
 
 export const connectSocket = () => {
   const token = localStorage.getItem('token');
 
-  socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000', {
+  socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000', {
     auth: { token }
   });
 
