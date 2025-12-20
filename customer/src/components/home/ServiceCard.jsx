@@ -1,10 +1,31 @@
+import { useNavigate } from 'react-router-dom';
+import { useBookingStore } from '../../context/BookingContext';
 import Button from '../common/Button';
 
-const ServiceCard = ({ service, onBook }) => {
+/**
+ * @intent Displays a service card with book button that navigates to booking flow
+ */
+const ServiceCard = ({ service }) => {
+  const navigate = useNavigate();
+  const { updateBooking, setStep } = useBookingStore();
+
+  const handleBook = () => {
+    updateBooking({ service });
+    setStep(2); // Skip to provider selection since service is already selected
+    navigate('/book');
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow hover:shadow-md transition p-5 flex flex-col justify-between">
-      <div className="space-y-2">
-        <div className="flex justify-between items-center">
+    <div className="bg-white rounded-lg shadow hover:shadow-md transition overflow-hidden">
+      {service.image && (
+        <img
+          src={service.image}
+          alt={service.name}
+          className="w-full h-40 object-cover"
+        />
+      )}
+      <div className="p-5 space-y-3">
+        <div className="flex justify-between items-start">
           <h3 className="text-lg font-semibold">
             {service.name}
           </h3>
@@ -13,27 +34,16 @@ const ServiceCard = ({ service, onBook }) => {
           </span>
         </div>
 
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 line-clamp-2">
           {service.description}
         </p>
 
-        <div className="text-sm text-gray-700">
-          <p>
-            <strong>Provider:</strong>{' '}
-            {service.providerName}
-          </p>
-          <p>
-            <strong>Duration:</strong>{' '}
-            {service.duration} mins
-          </p>
-          <p>
-            <strong>Price:</strong> ₹{service.price}
-          </p>
+        <div className="flex justify-between items-center text-sm text-gray-700">
+          <span>⏱ {service.duration} mins</span>
+          <span className="font-semibold text-primary">₹{service.price}</span>
         </div>
-      </div>
 
-      <div className="mt-4">
-        <Button onClick={() => onBook(service)}>
+        <Button onClick={handleBook}>
           Book Now
         </Button>
       </div>

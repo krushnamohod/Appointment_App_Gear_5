@@ -1,51 +1,68 @@
-// ...existing code...
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { useAuthStore } from './context/AuthContext';
 
-import LoginPage from './components/auth/LoginPage';
-import SignupPage from './components/auth/SignupPage';
-import OTPVerification from './components/auth/OTPVerification';
+// Auth Components
 import ForgotPassword from './components/auth/ForgotPassword';
-import HomePage from './components/home/HomePage';
+import LoginPage from './components/auth/LoginPage';
+import OTPVerification from './components/auth/OTPVerification';
+import SignupPage from './components/auth/SignupPage';
+
+// App Components
 import BookingFlow from './components/booking/BookingFlow';
+import Navbar from './components/common/Navbar';
+import HomePage from './components/home/HomePage';
 import ProfilePage from './components/profile/ProfilePage';
 
-
+/**
+ * @intent Main app router with auth-based redirects and navigation
+ */
 function App() {
   const { isAuthenticated } = useAuthStore();
 
   return (
     <BrowserRouter>
-      <Toaster />
-      <Routes>
-        <Route
-          path="/login"
-          element={isAuthenticated ? <Navigate to="/" /> : <LoginPage />}
-        />
-        <Route path="/signup" element={<SignupPage />} />
-        <Route path="/verify-otp" element={<OTPVerification />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Toaster position="top-right" />
+      <Navbar />
 
-        <Route
-          path="/book"
-          element={isAuthenticated ? <BookingFlow /> : <Navigate to="/login" />}
-        />
+      <main className="min-h-screen bg-gray-50">
+        <Routes>
+          {/* Auth Routes */}
+          <Route
+            path="/login"
+            element={isAuthenticated ? <Navigate to="/" /> : <LoginPage />}
+          />
+          <Route
+            path="/signup"
+            element={isAuthenticated ? <Navigate to="/" /> : <SignupPage />}
+          />
+          <Route
+            path="/forgot-password"
+            element={isAuthenticated ? <Navigate to="/" /> : <ForgotPassword />}
+          />
+          <Route
+            path="/verify-otp"
+            element={isAuthenticated ? <Navigate to="/" /> : <OTPVerification />}
+          />
 
-        <Route
-          path="/"
-          element={isAuthenticated ? <HomePage /> : <Navigate to="/login" />}
-        />
+          {/* Protected Routes */}
+          <Route
+            path="/"
+            element={isAuthenticated ? <HomePage /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/book"
+            element={isAuthenticated ? <BookingFlow /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/profile"
+            element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" />}
+          />
 
-        {/* moved inside Routes */}
-        <Route
-          path="/profile"
-          element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" />}
-        />
-
-        {/* optional: 404 fallback */}
-        <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
-      </Routes>
+          {/* 404 Fallback */}
+          <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
+        </Routes>
+      </main>
     </BrowserRouter>
   );
 }

@@ -1,9 +1,9 @@
 import { useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 import { signup } from '../../services/authService';
 import Button from '../common/Button';
 import Input from '../common/Input';
-import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -15,11 +15,9 @@ const SignupPage = () => {
   } = useForm();
 
   const onSubmit = async (data) => {
-    try {
-      await signup(data);
-      toast.success('OTP sent to email');
-      navigate('/verify-otp', { state: { email: data.email } });
-    } catch {}
+    await signup(data);
+    toast.success('OTP sent to email');
+    navigate('/verify-otp', { state: { email: data.email } });
   };
 
   return (

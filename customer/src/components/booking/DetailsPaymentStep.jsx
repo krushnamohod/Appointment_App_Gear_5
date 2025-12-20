@@ -1,9 +1,9 @@
 import { useForm } from 'react-hook-form';
-import { createBooking } from '../../services/appointmentService';
-import { useBookingStore } from '../../context/BookingContext';
-import Button from '../common/Button';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { useBookingStore } from '../../context/BookingContext';
+import { createBooking } from '../../services/appointmentService';
+import Button from '../common/Button';
 
 const DetailsPaymentStep = () => {
   const navigate = useNavigate();
@@ -21,9 +21,9 @@ const DetailsPaymentStep = () => {
       ...booking,
       details: data
     });
-    toast.success('Appointment booked');
+    toast.success('Appointment booked successfully!');
     resetBooking();
-    navigate('/confirmation');
+    navigate('/profile');
   };
 
   return (

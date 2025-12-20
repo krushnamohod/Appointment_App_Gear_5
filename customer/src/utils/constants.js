@@ -1,8 +1,7 @@
 export const SERVICE_CATEGORIES = [
   'All',
-  'Medical',
-  'Dental',
-  'Therapy',
+  'Hair',
+  'Skin',
   'Wellness',
-  'Consultation'
+  'Nails'
 ];

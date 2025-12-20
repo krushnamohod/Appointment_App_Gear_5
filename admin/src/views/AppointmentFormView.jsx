@@ -3,6 +3,7 @@ import { PreviewModal } from "@/components/PreviewModal";
 import { SecondaryActionBar } from "@/components/SecondaryActionBar";
 import { AppointmentHeader } from "@/components/form/AppointmentHeader";
 import { CoreDetailsSection } from "@/components/form/CoreDetailsSection";
+import { QuestionsTab } from "@/components/form/QuestionsTab";
 import { ScheduleTab } from "@/components/form/ScheduleTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import useAppointmentsStore from "@/store/appointmentsStore";
@@ -172,9 +173,7 @@ function AppointmentFormView({ appointment, onBack, onReporting, onSettings }) {
                         </TabsContent>
 
                         <TabsContent value="question" className="mt-4">
-                            <div className="rounded-lg border bg-white p-8 text-center text-gray-500">
-                                Configure questions for this appointment type.
-                            </div>
+                            <QuestionsTab />
                         </TabsContent>
 
                         <TabsContent value="options" className="mt-4">

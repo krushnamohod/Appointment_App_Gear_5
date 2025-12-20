@@ -1,9 +1,9 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { getServices } from '../../services/appointmentService';
 import { SERVICE_CATEGORIES } from '../../utils/constants';
+import LoadingSpinner from '../common/LoadingSpinner';
 import HeroSection from './HeroSection';
 import ServiceCard from './ServiceCard';
-import LoadingSpinner from '../common/LoadingSpinner';
 
 const HomePage = () => {
   const [services, setServices] = useState([]);
@@ -62,11 +62,10 @@ const HomePage = () => {
             <button
               key={cat}
               onClick={() => setCategory(cat)}
-              className={`px-4 py-2 rounded-full text-sm border transition ${
-                category === cat
+              className={`px-4 py-2 rounded-full text-sm border transition ${category === cat
                   ? 'bg-primary text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
+                }`}
             >
               {cat}
             </button>
@@ -88,9 +87,6 @@ const HomePage = () => {
               <ServiceCard
                 key={service.id}
                 service={service}
-                onBook={() =>
-                  console.log('Book service', service)
-                }
               />
             ))}
           </div>

@@ -1,9 +1,9 @@
 import { useForm } from 'react-hook-form';
-import { verifyOTP } from '../../services/authService';
+import toast from 'react-hot-toast';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { verifyOTP } from '../../services/authService';
 import Button from '../common/Button';
 import Input from '../common/Input';
-import toast from 'react-hot-toast';
 
 const OTPVerification = () => {
   const navigate = useNavigate();
@@ -16,11 +16,9 @@ const OTPVerification = () => {
   } = useForm();
 
   const onSubmit = async ({ otp }) => {
-    try {
-      await verifyOTP(state.email, otp);
-      toast.success('Account verified');
-      navigate('/login');
-    } catch {}
+    await verifyOTP(state.email, otp);
+    toast.success('Account verified');
+    navigate('/login');
   };
 
   return (

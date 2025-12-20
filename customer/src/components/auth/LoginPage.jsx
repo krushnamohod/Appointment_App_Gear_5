@@ -1,9 +1,9 @@
 import { useForm } from 'react-hook-form';
-import { login } from '../../services/authService';
+import toast from 'react-hot-toast';
 import { useAuthStore } from '../../context/AuthContext';
+import { login } from '../../services/authService';
 import Button from '../common/Button';
 import Input from '../common/Input';
-import toast from 'react-hot-toast';
 
 const LoginPage = () => {
   const { login: loginStore } = useAuthStore();
@@ -15,11 +15,9 @@ const LoginPage = () => {
   } = useForm();
 
   const onSubmit = async (data) => {
-    try {
-      const res = await login(data.email, data.password);
-      loginStore(res.data.user, res.data.token);
-      toast.success('Logged in successfully');
-    } catch {}
+    const res = await login(data.email, data.password);
+    loginStore(res.data.user, res.data.token);
+    toast.success('Logged in successfully');
   };
 
   return (
