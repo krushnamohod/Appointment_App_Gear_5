@@ -5,7 +5,7 @@ import { useAuthStore } from './context/AuthContext';
 // Auth Components
 import ForgotPassword from './components/auth/ForgotPassword';
 import LoginPage from './components/auth/LoginPage';
-import OTPVerification from './components/auth/OTPVerification';
+import VerifyOTPPage from './components/auth/VerifyOTPPage';
 
 // App Components
 import BookingFlow from './components/booking/BookingFlow';
@@ -41,7 +41,7 @@ function App() {
           />
           <Route
             path="/verify-otp"
-            element={isAuthenticated ? <Navigate to="/" /> : <OTPVerification />}
+            element={isAuthenticated ? <Navigate to="/" /> : <VerifyOTPPage />}
           />
 
           {/* Protected Routes */}
