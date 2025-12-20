@@ -18,6 +18,10 @@ app.get("/", (req, res) => {
   res.send("Appointment Booking Backend Running 🚀");
 });
 
+import slotLockRoutes from "./routes/slotLock.route.js";
+app.use("/api/slots", slotLockRoutes);
+
+
 app.use("/api/auth", authRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/providers", providerRoutes);

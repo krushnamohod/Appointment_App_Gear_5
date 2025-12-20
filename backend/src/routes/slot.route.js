@@ -1,6 +1,9 @@
 import { Router } from "express";
-import { getAvailableSlots } from "../controllers/slot.controller.js";
+import { generateSlotsForDate } from "../controllers/slot.controller.js";
+import { authMiddleware } from "../middlewares/auth.middleware.js";
 
 const router = Router();
-router.get("/available", getAvailableSlots);
+
+router.post("/generate", authMiddleware, generateSlotsForDate);
+
 export default router;
