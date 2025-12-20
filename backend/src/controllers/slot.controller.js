@@ -58,3 +58,52 @@ export async function generateSlotsForDate(req, res) {
     slots: created,
   });
 }
+
+export async function getSlots(req, res) {
+  const { date, serviceId, providerId } = req.query;
+
+  if (!date) {
+    return res.status(400).json({ message: "Date is required" });
+  }
+
+  const where = {
+    // Basic date filter - would ideally filter by time range falling on that day
+    // For simplicity assuming YYYY-MM-DD string match or range if timestamp
+    // Ideally, slots store exact ISO DateTime. 
+    // Let's assume frontend sends YYYY-MM-DD and we filter slots starting on that day.
+    startTime: {
+      gte: new Date(`${date}T00:00:00.000Z`),
+      lt: new Date(`${date}T23:59:59.999Z`),
+    },
+  };
+
+  if (serviceId) where.serviceId = serviceId;
+  if (providerId) where.providerId = providerId;
+
+  const slots = await prisma.slot.findMany({
+    where,
+    include: {
+      provider: {
+        select: {
+          id: true,
+          name: true,
+          // avatar: true // Add to schema if needed
+        }
+      }
+    },
+    orderBy: {
+      startTime: 'asc'
+    }
+  });
+
+  // Check availability logic (bookedCount < capacity)
+  const availableSlots = slots.map(slot => ({
+    id: slot.id,
+    time: new Date(slot.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    startTime: slot.startTime,
+    available: slot.bookedCount < slot.capacity,
+    provider: slot.provider
+  }));
+
+  res.json(availableSlots);
+}

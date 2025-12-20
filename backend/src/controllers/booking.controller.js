@@ -72,3 +72,27 @@ export async function createBooking(req, res, next) {
     next(error); // Pass to global error handler
   }
 }
+
+
+export async function getUserBookings(req, res, next) {
+  try {
+    const bookings = await prisma.booking.findMany({
+      where: { userId: req.user.id },
+      include: {
+        slot: {
+          include: {
+            service: true,
+            provider: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    res.json(bookings);
+  } catch (error) {
+    next(error);
+  }
+}

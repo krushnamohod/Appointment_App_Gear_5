@@ -17,10 +17,23 @@ import SelectServiceStep from './SelectServiceStep';
 const BookingFlow = () => {
   const { step } = useBookingStore();
   const [services, setServices] = useState([]);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getServices().then((res) => setServices(res.data));
+    getServices()
+      .then((res) => {
+        setServices(res.data);
+      })
+      .catch((err) => {
+        console.error("Failed to load services", err);
+        setError("Failed to load services. Please check your connection.");
+      })
+      .finally(() => setLoading(false));
   }, []);
+
+  if (loading) return <div className="p-8 text-center">Loading services...</div>;
+  if (error) return <div className="p-8 text-center text-red-500">{error}</div>;
 
   return (
     <div className="max-w-3xl mx-auto p-6">

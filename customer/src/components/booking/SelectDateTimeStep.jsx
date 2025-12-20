@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight, Clock, Minus, Plus, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useBookingStore } from '../../context/BookingContext';
-import { getSlots } from '../../services/appointmentService';
+import { getAvailableSlots } from '../../services/appointmentService';
 
 /**
  * @intent Paper Planner styled date/time selection with visual calendar and booking slots
@@ -19,7 +19,7 @@ const SelectDateTimeStep = () => {
 
   useEffect(() => {
     if (booking.provider?.id) {
-      getSlots(booking.provider.id, selectedDate.toISOString().split('T')[0])
+      getAvailableSlots(booking.provider.id, selectedDate.toISOString().split('T')[0])
         .then((res) => setSlots(res.data));
     }
   }, [booking.provider?.id, selectedDate]);
