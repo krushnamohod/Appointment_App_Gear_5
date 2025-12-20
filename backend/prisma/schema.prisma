@@ -12,7 +12,6 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
-
 enum Role {
   CUSTOMER
   ADMIN
@@ -27,10 +26,6 @@ enum BookingStatus {
   COMPLETED
 }
 
-//////////////////////
-// MODELS
-//////////////////////
-
 model User {
   id        String   @id @default(uuid())
   name      String
@@ -38,24 +33,18 @@ model User {
   password  String
   role      Role     @default(CUSTOMER)
   isActive  Boolean  @default(true)
-
   bookings  Booking[]
-
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model Service {
   id          String   @id @default(uuid())
   name        String
-  duration    Int      // in minutes
+  duration    Int
   capacity    Int
   isPublished Boolean  @default(false)
-
   providers   Provider[]
   slots       Slot[]
-
-  createdAt   DateTime @default(now())
 }
 
 model Provider {
@@ -63,39 +52,29 @@ model Provider {
   name         String
   serviceId    String
   workingHours Json
-
   service      Service  @relation(fields: [serviceId], references: [id])
   slots        Slot[]
-
-  createdAt    DateTime @default(now())
 }
 
 model Slot {
-  id           String   @id @default(uuid())
-  serviceId    String
-  providerId   String
-
-  startTime    DateTime
-  endTime      DateTime
-
-  capacity     Int
-  bookedCount  Int      @default(0)
-
-  service      Service  @relation(fields: [serviceId], references: [id])
-  provider     Provider @relation(fields: [providerId], references: [id])
-  bookings     Booking[]
-
-  createdAt    DateTime @default(now())
+  id          String   @id @default(uuid())
+  serviceId   String
+  providerId  String
+  startTime   DateTime
+  endTime     DateTime
+  capacity    Int
+  bookedCount Int      @default(0)
+  service     Service  @relation(fields: [serviceId], references: [id])
+  provider    Provider @relation(fields: [providerId], references: [id])
+  bookings    Booking[]
 }
 
 model Booking {
   id        String        @id @default(uuid())
   userId    String
   slotId    String
-  status    BookingStatus @default(PENDING)
-
+  status    BookingStatus @default(CONFIRMED)
   user      User          @relation(fields: [userId], references: [id])
   slot      Slot          @relation(fields: [slotId], references: [id])
-
   createdAt DateTime      @default(now())
 }
