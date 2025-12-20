@@ -5,26 +5,33 @@ import * as React from "react";
 /**
  * @intent Checkbox component for manage capacity and other toggles
  */
-const Checkbox = React.forwardRef(({ className, checked, onCheckedChange, ...props }, ref) => {
-    const [isChecked, setIsChecked] = React.useState(checked || false);
+const Checkbox = React.forwardRef(({ className, checked, onCheckedChange, disabled, id, ...props }, ref) => {
+    // Use internal state only for uncontrolled mode
+    const [internalChecked, setInternalChecked] = React.useState(false);
 
-    React.useEffect(() => {
-        if (checked !== undefined) setIsChecked(checked);
-    }, [checked]);
+    // Determine if we're in controlled mode
+    const isControlled = checked !== undefined;
+    const isChecked = isControlled ? checked : internalChecked;
 
     const handleClick = () => {
+        if (disabled) return;
         const newValue = !isChecked;
-        setIsChecked(newValue);
+
+        if (!isControlled) {
+            setInternalChecked(newValue);
+        }
         onCheckedChange?.(newValue);
     };
 
     return (
         <button
             ref={ref}
-            type="button"
+            id={id}
+            type="radio-button"
             role="checkbox"
             aria-checked={isChecked}
             data-state={isChecked ? "checked" : "unchecked"}
+            disabled={disabled}
             onClick={handleClick}
             className={cn(
                 "peer h-4 w-4 shrink-0 rounded-sm border border-primary shadow focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
@@ -44,4 +51,3 @@ const Checkbox = React.forwardRef(({ className, checked, onCheckedChange, ...pro
 Checkbox.displayName = "Checkbox";
 
 export { Checkbox };
-
