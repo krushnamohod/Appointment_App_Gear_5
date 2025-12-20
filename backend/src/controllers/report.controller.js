@@ -10,6 +10,10 @@ export async function getDashboardStats(req, res, next) {
 
         // Get counts by status
         const completedCount = await prisma.booking.count({
+            where: { status: "COMPLETED" }
+        });
+
+        const confirmedCount = await prisma.booking.count({
             where: { status: "CONFIRMED" }
         });
 
@@ -58,11 +62,11 @@ export async function getDashboardStats(req, res, next) {
 
         const chartData = Object.values(chartDataMap);
 
-        // Get recent meetings list
-        const meetings = await prisma.booking.findMany({
+        // Get recent bookings list with related data
+        const bookings = await prisma.booking.findMany({
             take: 20,
             orderBy: {
-                scheduledAt: 'desc'
+                createdAt: 'desc'
             },
             include: {
                 user: {
@@ -71,36 +75,40 @@ export async function getDashboardStats(req, res, next) {
                         email: true
                     }
                 },
-                appointment: {
-                    select: {
-                        name: true
-                    }
-                },
-                resource: {
-                    select: {
-                        name: true
+                slot: {
+                    include: {
+                        service: {
+                            select: {
+                                name: true
+                            }
+                        },
+                        provider: {
+                            select: {
+                                name: true
+                            }
+                        }
                     }
                 }
             }
         });
 
         // Format meetings for frontend
-        const formattedMeetings = meetings.map(m => ({
-            id: m.id,
-            name: m.user?.name || m.visitorName || "Unknown",
-            email: m.user?.email || m.visitorEmail || "",
-            phone: m.visitorPhone || "",
-            date: m.scheduledAt ? new Date(m.scheduledAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : "",
-            time: m.scheduledAt ? new Date(m.scheduledAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : "",
-            resource: m.resource?.name || null,
-            appointment: m.appointment?.name || "",
-            status: m.status?.toLowerCase() || "pending"
+        const formattedMeetings = bookings.map(b => ({
+            id: b.id,
+            name: b.user?.name || "Unknown",
+            email: b.user?.email || "",
+            phone: "",
+            date: b.slot?.startTime ? new Date(b.slot.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : new Date(b.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+            time: b.slot?.startTime ? new Date(b.slot.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : "",
+            resource: b.slot?.provider?.name || null,
+            service: b.slot?.service?.name || "",
+            status: b.status?.toLowerCase() || "pending"
         }));
 
         res.json({
             stats: {
                 total: totalBookings,
-                completed: completedCount,
+                completed: completedCount + confirmedCount,
                 pending: pendingCount,
                 cancelled: cancelledCount
             },
@@ -108,6 +116,7 @@ export async function getDashboardStats(req, res, next) {
             meetings: formattedMeetings
         });
     } catch (error) {
+        console.error("Dashboard stats error:", error);
         next(error);
     }
 }
