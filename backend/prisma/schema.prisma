@@ -76,15 +76,17 @@ model Provider {
 }
 
 model Slot {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   serviceId   String
-  providerId  String
+  providerId  String?
+  resourceId  String?
   startTime   DateTime
   endTime     DateTime
   capacity    Int
-  bookedCount Int      @default(0)
-  service     Service  @relation(fields: [serviceId], references: [id])
-  provider    Provider @relation(fields: [providerId], references: [id])
+  bookedCount Int       @default(0)
+  service     Service   @relation(fields: [serviceId], references: [id])
+  provider    Provider? @relation(fields: [providerId], references: [id])
+  resource    Resource? @relation(fields: [resourceId], references: [id])
   bookings    Booking[]
 }
 
@@ -106,8 +108,11 @@ model Resource {
   name            String
   capacity        Int        @default(1)
   parentId        String?
+  workingHours    Json?      // To support automatic slot generation for resources
+  type            String?    // e.g., 'COURT', 'VENUE', 'EQUIPMENT'
   parent          Resource?  @relation("ResourceHierarchy", fields: [parentId], references: [id])
   linkedResources Resource[] @relation("ResourceHierarchy")
+  slots           Slot[]
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
 }

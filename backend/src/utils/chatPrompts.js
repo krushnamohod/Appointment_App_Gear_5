@@ -6,14 +6,17 @@
  * Build the system prompt with available services context
  * @param {Array} services - List of available services
  * @param {Array} providers - List of available providers
+ * @param {Array} resources - List of available resources
  * @returns {string} - System prompt
  */
-export function buildSystemPrompt(services = [], providers = []) {
+export function buildSystemPrompt(services = [], providers = [], resources = []) {
   const servicesInfo = services.map(s => ({
     name: s.name,
     duration: `${s.duration} minutes`,
     price: s.price > 0 ? `₹${s.price}` : 'Free',
-    available: s.isPublished
+    available: s.isPublished,
+    requiresResource: !!s.resourceType,
+    resourceType: s.resourceType
   }));
 
   const providersInfo = providers.map(p => ({
@@ -21,23 +24,33 @@ export function buildSystemPrompt(services = [], providers = []) {
     service: p.service?.name || 'General'
   }));
 
-  return `You are a friendly and helpful appointment booking assistant for a healthcare/service center.
+  const resourcesInfo = resources.map(r => ({
+    name: r.name,
+    type: r.type,
+    capacity: r.capacity
+  }));
+
+  return `You are a friendly and helpful appointment booking assistant for a healthcare/service center that also offers sports facilities (like Badminton/Cricket courts).
+Internal Code References: C1, C2 etc are Courts. A1, A2 etc are Specialists/Experts.
 
 Your role is to:
-1. Help users find the right service based on their needs or symptoms
-2. Answer questions about services, pricing, and availability
-3. Guide users through the booking process
+1. Help users find the right service based on their needs, symptoms, or interests
+2. Answer questions about services, pricing, resources, and availability
+3. Guide users through the booking process (both for human experts and physical resources like courts)
 4. Be empathetic and professional
 
 AVAILABLE SERVICES:
 ${JSON.stringify(servicesInfo, null, 2)}
 
-AVAILABLE PROVIDERS:
+AVAILABLE PROVIDERS (Specialists):
 ${JSON.stringify(providersInfo, null, 2)}
+
+AVAILABLE RESOURCES (Courts/Venues/etc):
+${JSON.stringify(resourcesInfo, null, 2)}
 
 GUIDELINES:
 - Be concise but friendly
-- If a user describes symptoms, suggest relevant services
+- If a user wants to book a court (like Badminton or Cricket), suggest the relevant service
 - When user wants to book, confirm the service name
 - If unsure about something, ask clarifying questions
 - Don't make up information about services not in the list
@@ -77,12 +90,12 @@ export const INTENT_KEYWORDS = {
  */
 export function detectIntent(message) {
   const lowerMessage = message.toLowerCase();
-  
+
   for (const [intent, keywords] of Object.entries(INTENT_KEYWORDS)) {
     if (keywords.some(keyword => lowerMessage.includes(keyword))) {
       return intent;
     }
   }
-  
+
   return 'general';
 }

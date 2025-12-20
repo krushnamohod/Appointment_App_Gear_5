@@ -134,8 +134,15 @@ const ConfirmationStep = () => {
                     </div>
                     <div>
                         <p className="text-sm text-ink/50 mb-1">Venue</p>
-                        <p className="font-serif text-lg text-ink">{booking.service?.venue || "Our Office"}</p>
-                        <p className="text-ink/60">{booking.provider?.name ? `With: ${booking.provider.name}` : "Any available provider"}</p>
+                        <p className="font-serif text-lg text-ink">{booking.service?.venue || "Our Location"}</p>
+                        <p className="text-ink/60">
+                            {booking.resource?.name
+                                ? `Resource: ${booking.resource.name}`
+                                : booking.provider?.name
+                                    ? `With: ${booking.provider.name}`
+                                    : "Any available resource/expert"
+                            }
+                        </p>
                     </div>
                 </div>
 

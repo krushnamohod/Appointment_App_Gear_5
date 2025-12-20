@@ -325,7 +325,11 @@ const ProfilePage = () => {
                         <div className="text-right">
                           <p className="text-xs text-ink/50 mb-1">Resources</p>
                           <div className="flex flex-col gap-1 items-end">
-                            {appt.provider?.name ? (
+                            {appt.resource?.name ? (
+                              <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-planner">
+                                {appt.resource.name}
+                              </span>
+                            ) : appt.provider?.name ? (
                               <span className="px-2 py-1 bg-sage/20 text-sage-dark text-xs rounded-planner">
                                 {appt.provider.name}
                               </span>

@@ -6,6 +6,7 @@ export const useBookingStore = create((set) => ({
   booking: {
     service: null,
     provider: null,
+    resource: null,
     date: null,
     time: null,
     details: {}
@@ -41,6 +42,7 @@ export const useBookingStore = create((set) => ({
       booking: {
         service: null,
         provider: null,
+        resource: null,
         date: null,
         time: null,
         details: {}
