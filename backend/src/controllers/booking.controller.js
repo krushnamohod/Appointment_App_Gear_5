@@ -11,7 +11,7 @@ export async function createBooking(req, res, next) {
   let slotToBook = null;
 
   try {
-    const { serviceId, slotId, date } = req.body;
+    const { serviceId, slotId, date, capacity = 1, answers = {} } = req.body;
     const userId = req.user.id;
 
     let finalSlotId = slotId;
@@ -60,14 +60,14 @@ export async function createBooking(req, res, next) {
 
         slotToBook = slot;
 
-        // 2. Atomic Update: Only increment if bookedCount < capacity
+        // 2. Atomic Update: Only increment if bookedCount + requested capacity <= capacity
         const updatedBatch = await tx.slot.updateMany({
           where: {
             id: finalSlotId,
-            bookedCount: { lt: slot.capacity },
+            capacity: { gte: slot.bookedCount + capacity },
           },
           data: {
-            bookedCount: { increment: 1 },
+            bookedCount: { increment: capacity },
           },
         });
 
@@ -83,6 +83,9 @@ export async function createBooking(req, res, next) {
             userId,
             slotId: finalSlotId,
             status: "CONFIRMED",
+            capacity,
+            answers,
+            totalPrice: (slot.service.price || 0) * capacity
           },
           include: {
             slot: {
@@ -170,6 +173,9 @@ export async function getUserBookings(req, res, next) {
       date: b.slot?.startTime ? new Date(b.slot.startTime).toISOString().split('T')[0] : null,
       time: b.slot?.startTime ? new Date(b.slot.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null,
       status: b.status,
+      capacity: b.capacity,
+      answers: b.answers,
+      totalPrice: b.totalPrice,
       service: b.slot?.service,
       provider: b.slot?.provider,
       createdAt: b.createdAt
@@ -220,7 +226,7 @@ export async function cancelBooking(req, res, next) {
       await tx.slot.update({
         where: { id: booking.slotId },
         data: {
-          bookedCount: { decrement: 1 }
+          bookedCount: { decrement: booking.capacity }
         }
       });
     });

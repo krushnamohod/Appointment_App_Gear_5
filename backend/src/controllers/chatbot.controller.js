@@ -34,12 +34,17 @@ async function getServicesContext() {
             name: true,
             duration: true,
             price: true,
+            image: true,
             isPublished: true
         }
     });
 
     const providers = await prisma.provider.findMany({
-        include: {
+        select: {
+            id: true,
+            name: true,
+            avatar: true,
+            serviceId: true,
             service: {
                 select: { name: true }
             }

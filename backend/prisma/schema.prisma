@@ -27,6 +27,7 @@ model User {
   name      String
   email     String   @unique
   password  String
+  avatar    String?
   role      Role     @default(CUSTOMER)
   isActive  Boolean  @default(true)
   bookings  Booking[]
@@ -34,19 +35,25 @@ model User {
 }
 
 model Service {
-  id          String   @id @default(uuid())
-  name        String
-  duration    Int
-  price       Int      @default(0)
-  capacity    Int      @default(1)
-  isPublished Boolean  @default(false)
-  providers   Provider[]
-  slots       Slot[]
+  id                  String   @id @default(uuid())
+  name                String
+  duration            Int
+  price               Int      @default(0)
+  image               String?
+  capacity            Int      @default(1)
+  manageCapacity      Boolean  @default(false)
+  questions           Json?
+  venue               String?
+  confirmationMessage String?
+  isPublished         Boolean  @default(false)
+  providers           Provider[]
+  slots               Slot[]
 }
 
 model Provider {
   id           String   @id @default(uuid())
   name         String
+  avatar       String?
   serviceId    String
   workingHours Json
   service      Service  @relation(fields: [serviceId], references: [id])
@@ -67,11 +74,14 @@ model Slot {
 }
 
 model Booking {
-  id        String        @id @default(uuid())
-  userId    String
-  slotId    String
-  status    BookingStatus @default(CONFIRMED)
-  user      User          @relation(fields: [userId], references: [id])
-  slot      Slot          @relation(fields: [slotId], references: [id])
-  createdAt DateTime      @default(now())
+  id         String        @id @default(uuid())
+  userId     String
+  slotId     String
+  status     BookingStatus @default(CONFIRMED)
+  capacity   Int           @default(1)
+  answers    Json?
+  totalPrice Int           @default(0)
+  user       User          @relation(fields: [userId], references: [id])
+  slot       Slot          @relation(fields: [slotId], references: [id])
+  createdAt  DateTime      @default(now())
 }
