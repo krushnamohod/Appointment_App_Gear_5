@@ -1,17 +1,23 @@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Minus, Plus, Users } from "lucide-react";
 import * as React from "react";
 import { useBookingStore } from "../../context/BookingContext";
 
 /**
- * @intent Calendar with time slot selection for booking appointments
+ * @intent Calendar with time slot selection and capacity management for booking
  */
 const SelectDateTimeStep = () => {
   const { booking, updateBooking, setStep } = useBookingStore();
 
   const [date, setDate] = React.useState(booking.date ? new Date(booking.date) : undefined);
   const [selectedTime, setSelectedTime] = React.useState(booking.time || null);
+  const [numberOfPeople, setNumberOfPeople] = React.useState(booking.numberOfPeople || 1);
+
+  // Capacity settings (can be fetched from service data)
+  const manageCapacity = booking.service?.manageCapacity ?? true;
+  const maxCapacity = booking.service?.maxCapacity || 10;
 
   // Generate time slots from 9:00 AM to 6:00 PM (15 min intervals)
   const timeSlots = React.useMemo(() => {
@@ -32,11 +38,24 @@ const SelectDateTimeStep = () => {
     ];
   }, []);
 
+  const handleIncrement = () => {
+    if (numberOfPeople < maxCapacity) {
+      setNumberOfPeople(prev => prev + 1);
+    }
+  };
+
+  const handleDecrement = () => {
+    if (numberOfPeople > 1) {
+      setNumberOfPeople(prev => prev - 1);
+    }
+  };
+
   const handleContinue = () => {
     if (date && selectedTime) {
       updateBooking({
         date: date.toISOString().split('T')[0],
-        time: selectedTime
+        time: selectedTime,
+        numberOfPeople: manageCapacity ? numberOfPeople : 1
       });
       setStep(4);
     }
@@ -50,6 +69,45 @@ const SelectDateTimeStep = () => {
     <Card className="overflow-hidden">
       <CardContent className="relative p-0 md:pr-48">
         <div className="p-6">
+          {/* Number of People Counter - Only shown when manageCapacity is true */}
+          {manageCapacity && (
+            <div className="mb-6 pb-6 border-b">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Users size={18} className="text-gray-500" />
+                  <span className="text-sm font-medium text-gray-700">Number of people</span>
+                </div>
+
+                {/* Counter Box */}
+                <div className="flex items-center border-2 border-red-400 rounded-lg overflow-hidden">
+                  <button
+                    onClick={handleDecrement}
+                    disabled={numberOfPeople <= 1}
+                    className="px-3 py-2 text-red-500 hover:bg-red-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <Minus size={16} />
+                  </button>
+                  <div className="px-4 py-2 min-w-[50px] text-center font-medium border-x-2 border-red-400">
+                    {numberOfPeople}
+                  </div>
+                  <button
+                    onClick={handleIncrement}
+                    disabled={numberOfPeople >= maxCapacity}
+                    className="px-3 py-2 text-red-500 hover:bg-red-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Capacity info */}
+              <p className="text-xs text-gray-500 mt-2 text-right">
+                Max capacity: {maxCapacity} people
+              </p>
+            </div>
+          )}
+
+          {/* Calendar */}
           <Calendar
             mode="single"
             selected={date}
@@ -104,7 +162,10 @@ const SelectDateTimeStep = () => {
                   month: "long",
                 })}
               </span>{" "}
-              at <span className="font-medium">{selectedTime}</span>.
+              at <span className="font-medium">{selectedTime}</span>
+              {manageCapacity && numberOfPeople > 1 && (
+                <> for <span className="font-medium">{numberOfPeople} people</span></>
+              )}.
             </>
           ) : (
             <>Select a date and time for your appointment.</>
