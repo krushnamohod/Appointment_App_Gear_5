@@ -2,21 +2,32 @@ import { AnimatedSidebar } from "@/components/AnimatedSidebar";
 import { ReportingModal, SettingsModal } from "@/components/SettingsModal";
 import { TopNavBar } from "@/components/TopNavBar";
 import "@/index.css";
+import { useAdminAuthStore } from "@/store/authStore";
 import { AppointmentsModule } from "@/views/AppointmentsModule";
 import { HelpCenterView } from "@/views/HelpCenterView";
+import LoginPage from "@/views/LoginPage";
 import { ResourcesSettingsView, UserSettingsView } from "@/views/SettingsViews";
 import { Box, Calendar, HelpCircle, LogOut, Settings, User } from "lucide-react";
 import { useState } from "react";
 
 /**
- * @intent Main app component composing the sidebar layout with universal Top Navigation
+ * @intent Main app component with auth routing and sidebar layout
  */
 function App() {
+    const { isAuthenticated, logout } = useAdminAuthStore();
     const [showSettings, setShowSettings] = useState(false);
     const [showReporting, setShowReporting] = useState(false);
 
-    const sidebarItems = [
+    // Show login page if not authenticated
+    if (!isAuthenticated) {
+        return <LoginPage />;
+    }
 
+    const handleSignOut = () => {
+        logout();
+    };
+
+    const sidebarItems = [
         {
             title: "Appointment View",
             Icon: Calendar,
@@ -50,6 +61,7 @@ function App() {
             Content: () => <div className="p-8 text-center text-red-500">Signing Out...</div>,
             className: "text-red-500 hover:bg-red-50 hover:text-red-600 font-medium mt-auto",
             iconClassName: "text-red-500",
+            onClick: handleSignOut,
         },
     ];
 

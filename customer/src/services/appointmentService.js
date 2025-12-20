@@ -11,7 +11,9 @@ const MOCK_SERVICES = [
     description: 'Professional haircut by expert stylists',
     duration: 30,
     price: 25,
-    image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400'
+    image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400',
+    manageCapacity: true,
+    maxCapacity: 5
   },
   {
     id: 2,
@@ -20,7 +22,9 @@ const MOCK_SERVICES = [
     description: 'Full hair coloring with premium dyes',
     duration: 90,
     price: 80,
-    image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400'
+    image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400',
+    manageCapacity: true,
+    maxCapacity: 3
   },
   {
     id: 3,
@@ -29,7 +33,9 @@ const MOCK_SERVICES = [
     description: 'Deep cleansing facial for glowing skin',
     duration: 60,
     price: 55,
-    image: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=400'
+    image: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=400',
+    manageCapacity: false,
+    maxCapacity: 1
   },
   {
     id: 4,
@@ -38,7 +44,9 @@ const MOCK_SERVICES = [
     description: 'Relaxing full body massage',
     duration: 60,
     price: 70,
-    image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=400'
+    image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=400',
+    manageCapacity: true,
+    maxCapacity: 8
   },
   {
     id: 5,
@@ -46,8 +54,10 @@ const MOCK_SERVICES = [
     category: 'Nails',
     description: 'Professional nail care and polish',
     duration: 45,
-    price: 35,
-    image: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=400'
+    price: 0,
+    image: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=400',
+    manageCapacity: true,
+    maxCapacity: 4
   },
   {
     id: 6,
@@ -56,7 +66,9 @@ const MOCK_SERVICES = [
     description: 'Relaxing foot care treatment',
     duration: 45,
     price: 40,
-    image: 'https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=400'
+    image: 'https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=400',
+    manageCapacity: true,
+    maxCapacity: 6
   }
 ];
 
