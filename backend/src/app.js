@@ -42,9 +42,10 @@ import serviceRoutes from "./routes/service.route.js";
 import providerRoutes from "./routes/provider.route.js";
 import slotRoutes from "./routes/slot.route.js";
 import bookingRoutes from "./routes/booking.route.js";
+import chatbotRoutes from "./routes/chatbot.route.js";
 
 app.get("/", (req, res) => {
-  res.send("Appointment Booking Backend Running 🚀 (with Socket.IO)");
+  res.send("Appointment Booking Backend Running 🚀 (with Socket.IO + AI Chat)");
 });
 
 app.use("/api/auth", authRoutes);
@@ -52,6 +53,7 @@ app.use("/api/services", serviceRoutes);
 app.use("/api/providers", providerRoutes);
 app.use("/api/slots", slotRoutes);
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/chat", chatbotRoutes);
 
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 
