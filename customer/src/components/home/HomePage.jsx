@@ -1,13 +1,13 @@
 import { Calendar, Clock, Filter, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { getServices } from '../../services/appointmentService';
+import { useBookingStore } from '../../context/BookingContext';
 
 /**
  * @intent Paper Planner styled homepage with service cards and search
  */
 const HomePage = () => {
-  const navigate = useNavigate();
+  const { openDrawer, updateBooking, setStep } = useBookingStore();
   const [services, setServices] = useState([]);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
@@ -19,6 +19,13 @@ const HomePage = () => {
       setLoading(false);
     });
   }, []);
+
+  const handleBookService = (service) => {
+    updateBooking({ service });
+    setStep(2); // Skip straight to provider selection
+    openDrawer();
+  };
+
 
   const filteredServices = services.filter((s) => {
     const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
@@ -108,7 +115,7 @@ const HomePage = () => {
               <div
                 key={service.id}
                 className="card-planner overflow-hidden cursor-pointer hover:translate-x-[-2px] hover:translate-y-[-2px] transition-transform"
-                onClick={() => navigate('/book', { state: { preSelectedService: service } })}
+                onClick={() => handleBookService(service)}
               >
                 {/* Image */}
                 <div className="h-40 bg-paper border-b border-ink/10 overflow-hidden">

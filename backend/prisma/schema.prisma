@@ -37,7 +37,8 @@ model Service {
   id          String   @id @default(uuid())
   name        String
   duration    Int
-  capacity    Int
+  price       Int      @default(0)
+  capacity    Int      @default(1)
   isPublished Boolean  @default(false)
   providers   Provider[]
   slots       Slot[]

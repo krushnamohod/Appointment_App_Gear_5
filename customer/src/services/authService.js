@@ -8,10 +8,21 @@ export const signup = (data) => {
   return api.post('/auth/signup', data);
 };
 
+// OTP Functions
+export const sendOTP = (email) => {
+  return api.post('/auth/send-otp', { email });
+};
+
 export const verifyOTP = (email, otp) => {
-  // Backend doesn't have OTP endpoint yet, simulating success for now
-  // or implementing if crucial. For now, let's assume auto-verify or skip.
-  return Promise.resolve({ data: { message: 'Account verified' } });
+  return api.post('/auth/verify-otp', { email, otp });
+};
+
+export const signupWithOTP = (data) => {
+  return api.post('/auth/signup-verify', data);
+};
+
+export const loginWithOTP = (email, otp) => {
+  return api.post('/auth/login-otp', { email, otp });
 };
 
 export const forgotPassword = (email) => {
@@ -26,4 +37,3 @@ export const logout = () => {
   localStorage.removeItem('token');
   return Promise.resolve();
 };
-

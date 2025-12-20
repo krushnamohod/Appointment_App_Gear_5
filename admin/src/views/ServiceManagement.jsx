@@ -78,31 +78,46 @@ export function ServiceManagement() {
             {isEditing && (
                 <div className="mb-6 p-4 border rounded-lg bg-gray-50">
                     <h2 className="text-lg font-semibold mb-3">{currentService.id ? "Edit Service" : "New Service"}</h2>
-                    <div className="grid grid-cols-3 gap-4 mb-4">
-                        <input
-                            className="border p-2 rounded"
-                            placeholder="Name"
-                            value={currentService.name}
-                            onChange={e => setCurrentService({ ...currentService, name: e.target.value })}
-                        />
-                        <input
-                            className="border p-2 rounded"
-                            type="number"
-                            placeholder="Duration (min)"
-                            value={currentService.duration}
-                            onChange={e => setCurrentService({ ...currentService, duration: parseInt(e.target.value) })}
-                        />
-                        {/* Note: Price is not in schema but useful for UI, defaulting schema uses logic? 
-                  Backend schema: name, duration, capacity, isPublished.
-                  Let's align with schema: capacity instead of price.
-               */}
-                        <input
-                            className="border p-2 rounded"
-                            type="number"
-                            placeholder="Capacity"
-                            value={currentService.capacity || 1}
-                            onChange={e => setCurrentService({ ...currentService, capacity: parseInt(e.target.value) })}
-                        />
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                            <input
+                                className="border p-2 rounded w-full"
+                                placeholder="Service name"
+                                value={currentService.name}
+                                onChange={e => setCurrentService({ ...currentService, name: e.target.value })}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Duration (min)</label>
+                            <input
+                                className="border p-2 rounded w-full"
+                                type="number"
+                                placeholder="30"
+                                value={currentService.duration}
+                                onChange={e => setCurrentService({ ...currentService, duration: parseInt(e.target.value) || 0 })}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
+                            <input
+                                className="border p-2 rounded w-full"
+                                type="number"
+                                placeholder="0"
+                                value={currentService.price || 0}
+                                onChange={e => setCurrentService({ ...currentService, price: parseInt(e.target.value) || 0 })}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Capacity</label>
+                            <input
+                                className="border p-2 rounded w-full"
+                                type="number"
+                                placeholder="1"
+                                value={currentService.capacity || 1}
+                                onChange={e => setCurrentService({ ...currentService, capacity: parseInt(e.target.value) || 1 })}
+                            />
+                        </div>
                     </div>
                     <div className="flex gap-2">
                         <button onClick={handleSave} className="flex items-center gap-1 bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"><Save size={16} /> Save</button>
@@ -116,7 +131,8 @@ export function ServiceManagement() {
                     <thead className="bg-gray-50 border-b">
                         <tr>
                             <th className="text-left p-4">Name</th>
-                            <th className="text-left p-4">Duration (min)</th>
+                            <th className="text-left p-4">Duration</th>
+                            <th className="text-left p-4">Price</th>
                             <th className="text-left p-4">Capacity</th>
                             <th className="text-right p-4">Actions</th>
                         </tr>
@@ -125,7 +141,8 @@ export function ServiceManagement() {
                         {services.map((service) => (
                             <tr key={service.id} className="border-b last:border-0">
                                 <td className="p-4 font-medium">{service.name}</td>
-                                <td className="p-4">{service.duration}</td>
+                                <td className="p-4">{service.duration} min</td>
+                                <td className="p-4">₹{service.price || 0}</td>
                                 <td className="p-4">{service.capacity}</td>
                                 <td className="p-4 text-right">
                                     <button

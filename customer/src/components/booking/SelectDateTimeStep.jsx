@@ -1,10 +1,14 @@
-import { ChevronLeft, ChevronRight, Clock, Minus, Plus, Users } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { ChevronLeft, ChevronRight, Clock, Minus, Plus, Users, Wifi, WifiOff, Loader2 } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
 import { useBookingStore } from '../../context/BookingContext';
-import { getAvailableSlots } from '../../services/appointmentService';
+import { getAvailableSlots, generateSlots, getProviders } from '../../services/appointmentService';
+import { subscribeToSlots, unsubscribeFromSlots, onSlotUpdate, connectSocket } from '../../services/socket';
+import toast from 'react-hot-toast';
 
 /**
- * @intent Paper Planner styled date/time selection with visual calendar and booking slots
+ * @intent Paper Planner styled date/time selection with 2-column layout
+ * Date picker on left, Slots on right, with capacity control and intro message
+ * Includes real-time slot updates via Socket.IO
  */
 const SelectDateTimeStep = () => {
   const { booking, updateBooking, setStep } = useBookingStore();
@@ -12,17 +16,83 @@ const SelectDateTimeStep = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState(null);
+  const [selectedSlotId, setSelectedSlotId] = useState(null);
   const [numberOfPeople, setNumberOfPeople] = useState(1);
+  const [isConnected, setIsConnected] = useState(false);
+  const [loadingValues, setLoadingValues] = useState(false);
 
   const manageCapacity = booking.service?.manageCapacity || false;
-  const maxCapacity = booking.service?.maxCapacity || 10;
+  const maxCapacity = booking.service?.capacity || 10;
 
-  useEffect(() => {
-    if (booking.provider?.id) {
-      getAvailableSlots(booking.provider.id, selectedDate.toISOString().split('T')[0])
-        .then((res) => setSlots(res.data));
+  // Handle real-time slot update
+  const handleSlotUpdate = useCallback((data) => {
+    console.log('🔄 Updating slot in UI:', data);
+    setSlots(prevSlots =>
+      prevSlots.map(slot =>
+        slot.id === data.slotId
+          ? { ...slot, available: data.available, bookedCount: data.bookedCount }
+          : slot
+      )
+    );
+
+    // If the currently selected slot became unavailable, deselect it
+    if (selectedSlotId === data.slotId && !data.available) {
+      setSelectedTime(null);
+      setSelectedSlotId(null);
     }
-  }, [booking.provider?.id, selectedDate]);
+  }, [selectedSlotId]);
+
+  // Connect to socket and subscribe to updates
+  useEffect(() => {
+    const socket = connectSocket();
+    setIsConnected(socket?.connected || false);
+
+    socket?.on('connect', () => setIsConnected(true));
+    socket?.on('disconnect', () => setIsConnected(false));
+
+    return () => {
+      socket?.off('connect');
+      socket?.off('disconnect');
+    };
+  }, []);
+
+  // Subscribe to slot updates when date changes
+  useEffect(() => {
+    const dateStr = selectedDate.toISOString().split('T')[0];
+    const serviceId = booking.service?.id;
+
+    // Subscribe to slot room
+    subscribeToSlots(dateStr, serviceId);
+
+    // Register callback for slot updates
+    const unregister = onSlotUpdate(handleSlotUpdate);
+
+    return () => {
+      unsubscribeFromSlots(dateStr, serviceId);
+      unregister();
+    };
+  }, [selectedDate, booking.service?.id, handleSlotUpdate]);
+
+  // Fetch slots when date/provider changes
+  useEffect(() => {
+    const dateStr = selectedDate.toISOString().split('T')[0];
+
+    if (booking.provider?.id) {
+      getAvailableSlots(booking.provider.id, dateStr)
+        .then((res) => setSlots(res.data || []));
+    } else if (booking.provider === 'ANY') {
+      // Fetch all available slots for the service
+      getAvailableSlots(null, dateStr, booking.service?.id)
+        .then((res) => {
+          setSlots(res.data || []);
+        })
+        .catch((err) => {
+          console.error("Failed to load slots", err);
+          setSlots([]);
+        });
+    }
+  }, [booking.provider, booking.service?.id, selectedDate]);
+
 
   // Calendar helpers
   const getDaysInMonth = (date) => {
@@ -65,6 +135,54 @@ const SelectDateTimeStep = () => {
     if (date && !isPast(date)) {
       setSelectedDate(date);
       setSelectedTime(null);
+      setSelectedSlotId(null);
+    }
+  };
+
+  const handleSlotSelect = (slot) => {
+    if (slot.available) {
+      setSelectedTime(slot.time);
+      setSelectedSlotId(slot.id);
+    }
+  };
+
+  const handleGenerateSlots = async () => {
+    if (!booking.service?.id) return;
+
+    try {
+      setLoadingValues(true);
+      const dateStr = selectedDate.toISOString().split('T')[0];
+
+      let providerId = booking.provider?.id;
+
+      // If ANY provider, fetch first available provider to generate slots for
+      if (!providerId || booking.provider === 'ANY') {
+        const providersRes = await getProviders(booking.service.id);
+        if (providersRes.data && providersRes.data.length > 0) {
+          providerId = providersRes.data[0].id;
+        } else {
+          toast.error("No providers found for this service");
+          return;
+        }
+      }
+
+      await generateSlots({
+        providerId: providerId,
+        serviceId: booking.service.id,
+        date: dateStr
+      });
+      toast.success("Test slots generated!");
+
+      // Refresh slots
+      // If ANY, pass null as providerId (handled by service)
+      const fetchProviderId = booking.provider === 'ANY' ? null : providerId;
+      const res = await getAvailableSlots(fetchProviderId, dateStr, booking.service.id);
+      setSlots(res.data || []);
+    } catch (err) {
+      toast.error("Failed to generate slots");
+      console.error(err);
+    } finally {
+      setLoadingValues(false);
     }
   };
 
@@ -73,6 +191,7 @@ const SelectDateTimeStep = () => {
       updateBooking({
         date: selectedDate.toISOString().split('T')[0],
         time: selectedTime,
+        slotId: selectedSlotId,
         numberOfPeople: manageCapacity ? numberOfPeople : 1
       });
       setStep(4);
@@ -82,148 +201,169 @@ const SelectDateTimeStep = () => {
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'];
 
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const dayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
   return (
-    <div className="space-y-6">
-      {/* Capacity Counter - Paper Planner Style */}
-      {manageCapacity && (
-        <div className="card-planner p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-planner bg-sage/20 flex items-center justify-center">
-                <Users className="text-sage-dark" size={20} />
-              </div>
-              <div>
-                <h3 className="font-serif text-lg text-ink">Number of people</h3>
-                <p className="text-sm text-ink/50">Max capacity: {maxCapacity}</p>
-              </div>
+    <div className="card-planner p-6">
+      {/* 2-Column Layout: Date Picker | Slots */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Left Column - Date Picker */}
+        <div>
+          <h3 className="font-serif text-lg text-terracotta mb-4">Date picker</h3>
+
+          <div className="border border-ink/10 rounded-planner overflow-hidden bg-white">
+            {/* Calendar Header */}
+            <div className="flex items-center justify-between p-3 border-b border-ink/10">
+              <button
+                onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
+                className="text-ink/50 hover:text-ink transition-colors"
+              >
+                <ChevronLeft size={18} />
+              </button>
+
+              <h4 className="font-medium text-ink text-sm">
+                {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+              </h4>
+
+              <button
+                onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
+                className="text-ink/50 hover:text-ink transition-colors"
+              >
+                <ChevronRight size={18} />
+              </button>
             </div>
 
-            <div className="flex items-center gap-4">
-              <button
-                type="button"
-                onClick={() => setNumberOfPeople(Math.max(1, numberOfPeople - 1))}
-                disabled={numberOfPeople <= 1}
-                className="w-10 h-10 border border-ink/20 rounded-planner flex items-center justify-center text-ink hover:bg-paper disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              >
-                <Minus size={18} />
-              </button>
+            {/* Day Headers */}
+            <div className="grid grid-cols-7 border-b border-ink/10">
+              {dayNames.map((day) => (
+                <div key={day} className="py-2 text-center text-xs font-medium text-ink/50">
+                  {day}
+                </div>
+              ))}
+            </div>
 
-              <span className="font-serif text-2xl text-ink w-8 text-center">
-                {numberOfPeople}
-              </span>
-
-              <button
-                type="button"
-                onClick={() => setNumberOfPeople(Math.min(maxCapacity, numberOfPeople + 1))}
-                disabled={numberOfPeople >= maxCapacity}
-                className="w-10 h-10 border border-ink/20 rounded-planner flex items-center justify-center text-ink hover:bg-paper disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              >
-                <Plus size={18} />
-              </button>
+            {/* Calendar Grid */}
+            <div className="grid grid-cols-7 p-2 gap-1">
+              {getDaysInMonth(currentMonth).map((date, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleDateSelect(date)}
+                  disabled={!date || isPast(date)}
+                  className={`
+                    h-8 w-8 mx-auto text-sm rounded
+                    flex items-center justify-center
+                    transition-colors
+                    ${!date ? 'invisible' : ''}
+                    ${date && isPast(date) ? 'text-ink/20 cursor-not-allowed' : ''}
+                    ${date && !isPast(date) ? 'hover:bg-paper cursor-pointer text-ink/70' : ''}
+                    ${isToday(date) && !isSelected(date) ? 'font-bold text-terracotta' : ''}
+                    ${isSelected(date) ? 'bg-ink text-white' : ''}
+                  `}
+                >
+                  {date?.getDate()}
+                </button>
+              ))}
             </div>
           </div>
         </div>
-      )}
 
-      {/* Visual Calendar - Paper Planner Style */}
-      <div className="card-planner overflow-hidden">
-        {/* Calendar Header */}
-        <div className="flex items-center justify-between p-4 border-b border-ink/10">
-          <button
-            onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
-            className="w-10 h-10 rounded-planner border border-ink/15 flex items-center justify-center hover:bg-paper transition-colors"
-          >
-            <ChevronLeft size={20} className="text-ink/60" />
-          </button>
-
-          <h3 className="font-serif text-xl text-ink">
-            {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
-          </h3>
-
-          <button
-            onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
-            className="w-10 h-10 rounded-planner border border-ink/15 flex items-center justify-center hover:bg-paper transition-colors"
-          >
-            <ChevronRight size={20} className="text-ink/60" />
-          </button>
-        </div>
-
-        {/* Day Headers */}
-        <div className="grid grid-cols-7 border-b border-ink/10">
-          {dayNames.map((day) => (
-            <div key={day} className="py-3 text-center text-sm font-medium text-ink/50 border-r border-ink/5 last:border-r-0">
-              {day}
+        {/* Right Column - Time Slots */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-serif text-lg text-terracotta">Slots</h3>
+            <div className={`flex items-center gap-1 text-xs ${isConnected ? 'text-sage-dark' : 'text-ink/40'}`}>
+              {isConnected ? <Wifi size={12} /> : <WifiOff size={12} />}
+              <span>{isConnected ? 'Live' : 'Offline'}</span>
             </div>
-          ))}
-        </div>
+          </div>
 
-        {/* Calendar Grid - Planner Lines */}
-        <div className="grid grid-cols-7">
-          {getDaysInMonth(currentMonth).map((date, index) => (
-            <button
-              key={index}
-              onClick={() => handleDateSelect(date)}
-              disabled={!date || isPast(date)}
-              className={`
-                relative h-14 border-r border-b border-ink/5 last:border-r-0
-                flex items-center justify-center
-                transition-colors
-                ${!date ? 'bg-paper/50' : ''}
-                ${date && isPast(date) ? 'text-ink/25 cursor-not-allowed' : ''}
-                ${date && !isPast(date) ? 'hover:bg-paper cursor-pointer' : ''}
-                ${isToday(date) ? 'bg-gold/40' : ''}
-                ${isSelected(date) && !isToday(date) ? 'bg-gold/60' : ''}
-              `}
-            >
-              {date && (
-                <span className={`
-                  text-sm
-                  ${isToday(date) || isSelected(date) ? 'font-semibold text-ink' : 'text-ink/70'}
-                `}>
-                  {date.getDate()}
-                </span>
-              )}
-            </button>
-          ))}
+          <div className="grid grid-cols-2 gap-3">
+            {slots.length === 0 ? (
+              <div className="col-span-2 text-center py-8 text-ink/50 border border-ink/10 rounded-planner flex flex-col items-center gap-3">
+                <Clock className="w-8 h-8 opacity-20" />
+                <span>No slots available</span>
+
+                {(booking.provider?.id || booking.provider === 'ANY') && (
+                  <button
+                    onClick={handleGenerateSlots}
+                    disabled={loadingValues}
+                    className="mt-2 text-xs bg-ink/5 hover:bg-ink/10 text-ink px-3 py-1.5 rounded-full transition-colors flex items-center gap-2"
+                  >
+                    {loadingValues && <Loader2 size={12} className="animate-spin" />}
+                    Generate Test Slots
+                  </button>
+                )}
+              </div>
+            ) : (
+              slots.map((slot) => (
+                <button
+                  key={slot.id || slot.time}
+                  onClick={() => handleSlotSelect(slot)}
+                  disabled={!slot.available}
+                  className={`
+                    py-3 px-4 text-center rounded-planner border transition-all text-sm relative
+                    ${!slot.available ? 'border-ink/10 text-ink/30 cursor-not-allowed bg-ink/5' : ''}
+                    ${slot.available && selectedTime !== slot.time ? 'border-terracotta/50 text-terracotta hover:border-terracotta hover:bg-terracotta/5' : ''}
+                    ${selectedTime === slot.time ? 'bg-terracotta text-white border-terracotta' : ''}
+                  `}
+                >
+                  {slot.time}
+                  {slot.bookedCount !== undefined && slot.capacity && (
+                    <span className="block text-[10px] opacity-70 mt-0.5">
+                      {slot.capacity - slot.bookedCount} left
+                    </span>
+                  )}
+                </button>
+              ))
+            )}
+          </div>
+
+          {/* Number of People - Only if manage capacity is on */}
+          {manageCapacity && (
+            <div className="mt-6 pt-4 border-t border-ink/10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Users className="text-ink/40" size={16} />
+                  <span className="text-sm text-terracotta">Number of people</span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setNumberOfPeople(Math.max(1, numberOfPeople - 1))}
+                    disabled={numberOfPeople <= 1}
+                    className="w-8 h-8 border border-ink/20 rounded flex items-center justify-center text-ink hover:bg-paper disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <Minus size={14} />
+                  </button>
+
+                  <span className="font-medium text-ink w-6 text-center">
+                    {numberOfPeople}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => setNumberOfPeople(Math.min(maxCapacity, numberOfPeople + 1))}
+                    disabled={numberOfPeople >= maxCapacity}
+                    className="w-8 h-8 border border-ink/20 rounded flex items-center justify-center text-ink hover:bg-paper disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <Plus size={14} />
+                  </button>
+                </div>
+              </div>
+              <p className="text-xs text-ink/40 mt-1 text-right">
+                Just like according to manage capacity rules
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Time Slots - Paper Planner Style */}
-      <div className="card-planner p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <Clock className="text-terracotta" size={20} />
-          <h3 className="font-serif text-lg text-ink">Available Times</h3>
-          <span className="text-sm text-ink/50">
-            {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
-          </span>
-        </div>
-
-        {slots.length === 0 ? (
-          <div className="text-center py-8 text-ink/50">
-            No available slots for this date
-          </div>
-        ) : (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-            {slots.map((slot) => (
-              <button
-                key={slot.time}
-                onClick={() => setSelectedTime(slot.time)}
-                disabled={!slot.available}
-                className={`
-                  py-3 px-4 text-center rounded-planner border-2 transition-all
-                  ${!slot.available ? 'slot-booked' : ''}
-                  ${slot.available && selectedTime !== slot.time ? 'slot-available' : ''}
-                  ${selectedTime === slot.time ? 'slot-selected' : ''}
-                `}
-                style={selectedTime === slot.time ? { boxShadow: '2px 2px 0px rgba(45, 45, 45, 0.1)' } : {}}
-              >
-                <span className="text-sm font-medium">{slot.time}</span>
-              </button>
-            ))}
-          </div>
-        )}
+      {/* Introduction Message */}
+      <div className="text-center py-4 border-t border-ink/10 mb-4">
+        <p className="text-ink/60 italic text-sm">
+          Schedule your visit today and experience expert dental care brought right to your doorstep.
+        </p>
       </div>
 
       {/* Action Buttons */}
@@ -248,3 +388,4 @@ const SelectDateTimeStep = () => {
 };
 
 export default SelectDateTimeStep;
+

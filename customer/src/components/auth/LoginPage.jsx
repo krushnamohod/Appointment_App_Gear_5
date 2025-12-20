@@ -3,7 +3,7 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../context/AuthContext';
-import { login, signup } from '../../services/authService';
+import { login, sendOTP, loginWithOTP } from '../../services/authService';
 
 /**
  * @intent Paper Planner themed login/signup page with warm, stationery-inspired design
@@ -16,12 +16,15 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [useOTPLogin, setUseOTPLogin] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
 
   // Form fields
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [otp, setOtp] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,14 +33,30 @@ const LoginPage = () => {
 
     try {
       if (isLogin) {
-        const res = await login(email, password);
-        storeLogin(res.data.user, res.data.token);
-        toast.success('Welcome back!');
-        navigate('/');
+        if (useOTPLogin) {
+          // OTP Login flow
+          if (!otpSent) {
+            await sendOTP(email);
+            setOtpSent(true);
+            toast.success('OTP sent to your email!');
+          } else {
+            const res = await loginWithOTP(email, otp);
+            storeLogin(res.data.user, res.data.token);
+            toast.success('Welcome back!');
+            navigate('/');
+          }
+        } else {
+          // Password login
+          const res = await login(email, password);
+          storeLogin(res.data.user, res.data.token);
+          toast.success('Welcome back!');
+          navigate('/');
+        }
       } else {
-        await signup({ name, email, phone, password });
-        toast.success('Account created! Please verify OTP');
-        navigate('/verify-otp', { state: { email } });
+        // Signup - send OTP first
+        await sendOTP(email);
+        toast.success('OTP sent! Please verify your email.');
+        navigate('/verify-otp', { state: { email, name, password, phone } });
       }
     } catch (err) {
       setError(err?.response?.data?.message || 'Something went wrong');
@@ -232,37 +251,70 @@ const LoginPage = () => {
               </div>
             )}
 
-            <div>
-              <label className="block text-sm font-medium text-ink/70 mb-2">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-ink/30" size={18} />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  className="input-planner pl-11 pr-11"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-ink/30 hover:text-ink/60"
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
+            {/* Password field - only show for password login and signup */}
+            {(!isLogin || !useOTPLogin) && !otpSent && (
+              <div>
+                <label className="block text-sm font-medium text-ink/70 mb-2">Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-ink/30" size={18} />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required={!useOTPLogin}
+                    className="input-planner pl-11 pr-11"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-ink/30 hover:text-ink/60"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* OTP input field - show after OTP is sent for OTP login */}
+            {isLogin && useOTPLogin && otpSent && (
+              <div>
+                <label className="block text-sm font-medium text-ink/70 mb-2">Enter OTP</label>
+                <input
+                  type="text"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="123456"
+                  maxLength={6}
+                  required
+                  className="input-planner text-center text-2xl tracking-widest"
+                />
+                <p className="text-sm text-ink/50 mt-2 text-center">Check your email for the 6-digit code</p>
+              </div>
+            )}
 
             {isLogin && (
-              <div className="text-right">
+              <div className="flex justify-between items-center">
                 <button
                   type="button"
-                  onClick={() => navigate('/forgot-password')}
+                  onClick={() => {
+                    setUseOTPLogin(!useOTPLogin);
+                    setOtpSent(false);
+                    setOtp('');
+                  }}
                   className="text-sm text-terracotta hover:text-terracotta-dark transition-colors"
                 >
-                  Forgot password?
+                  {useOTPLogin ? 'Use password instead' : 'Login with OTP'}
                 </button>
+                {!useOTPLogin && (
+                  <button
+                    type="button"
+                    onClick={() => navigate('/forgot-password')}
+                    className="text-sm text-terracotta hover:text-terracotta-dark transition-colors"
+                  >
+                    Forgot password?
+                  </button>
+                )}
               </div>
             )}
 
@@ -273,7 +325,9 @@ const LoginPage = () => {
             >
               {loading ? 'Please wait...' : (
                 <>
-                  {isLogin ? 'Sign in' : 'Create account'}
+                  {isLogin
+                    ? (useOTPLogin && !otpSent ? 'Send OTP' : (useOTPLogin ? 'Verify & Login' : 'Sign in'))
+                    : 'Create account'}
                   <ArrowRight size={18} />
                 </>
               )}

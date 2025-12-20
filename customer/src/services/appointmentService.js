@@ -5,12 +5,15 @@ export const getServices = async () => {
 };
 
 export const getProviders = async (serviceId) => {
-  return api.get('/providers'); // Ideally filter by serviceId if backend supports it
+  const params = serviceId ? { serviceId } : {};
+  return api.get('/providers', { params });
 };
 
-export const getAvailableSlots = async (providerId, date) => {
-  // Use the new endpoint we just created
-  return api.get('/slots', { params: { date, providerId } });
+export const getAvailableSlots = async (providerId, date, serviceId) => {
+  const params = { date };
+  if (providerId) params.providerId = providerId;
+  if (serviceId) params.serviceId = serviceId;
+  return api.get('/slots', { params });
 };
 
 export const createBooking = async (data) => {
@@ -39,4 +42,9 @@ export const cancelAppointment = async (id) => {
 
 export const rescheduleAppointment = async (id, data) => {
   return Promise.resolve({ data: { success: true } });
+};
+
+export const generateSlots = async (data) => {
+  // data: { providerId, serviceId, date }
+  return api.post('/slots/generate', data);
 };
