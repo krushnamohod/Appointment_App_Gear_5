@@ -2,12 +2,14 @@ import { Calendar, Home, LogOut, Menu, User, X } from 'lucide-react';
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../context/AuthContext';
+import { useBookingStore } from '../../context/BookingContext';
 
 /**
  * @intent Paper Planner styled navigation bar with warm, tactile design
  */
 const Navbar = () => {
     const { isAuthenticated, logout, user } = useAuthStore();
+    const { openDrawer } = useBookingStore();
     const navigate = useNavigate();
     const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -20,7 +22,7 @@ const Navbar = () => {
 
     const navLinks = [
         { to: '/', icon: Home, label: 'Home' },
-        { to: '/book', icon: Calendar, label: 'Book' },
+        { action: openDrawer, icon: Calendar, label: 'Book' },
         { to: '/profile', icon: User, label: 'Profile' },
     ];
 
@@ -39,21 +41,32 @@ const Navbar = () => {
 
                     {/* Desktop Navigation */}
                     <div className="hidden md:flex items-center gap-1">
-                        {navLinks.map((link) => (
-                            <NavLink
-                                key={link.to}
-                                to={link.to}
-                                className={({ isActive }) => `
-                  flex items-center gap-2 px-4 py-2 rounded-planner text-sm font-medium transition-colors
-                  ${isActive
-                                        ? 'bg-gold/40 text-ink'
-                                        : 'text-ink/60 hover:text-ink hover:bg-paper'
-                                    }
-                `}
-                            >
-                                <link.icon size={18} />
-                                {link.label}
-                            </NavLink>
+                        {navLinks.map((link, index) => (
+                            link.to ? (
+                                <NavLink
+                                    key={link.to}
+                                    to={link.to}
+                                    className={({ isActive }) => `
+                                        flex items-center gap-2 px-4 py-2 rounded-planner text-sm font-medium transition-colors
+                                        ${isActive
+                                            ? 'bg-gold/40 text-ink'
+                                            : 'text-ink/60 hover:text-ink hover:bg-paper'
+                                        }
+                                    `}
+                                >
+                                    <link.icon size={18} />
+                                    {link.label}
+                                </NavLink>
+                            ) : (
+                                <button
+                                    key={index}
+                                    onClick={link.action}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-planner text-sm font-medium transition-colors text-ink/60 hover:text-ink hover:bg-paper"
+                                >
+                                    <link.icon size={18} />
+                                    {link.label}
+                                </button>
+                            )
                         ))}
                     </div>
 
@@ -84,22 +97,36 @@ const Navbar = () => {
                 {mobileOpen && (
                     <div className="md:hidden py-4 border-t border-ink/10">
                         <div className="space-y-2">
-                            {navLinks.map((link) => (
-                                <NavLink
-                                    key={link.to}
-                                    to={link.to}
-                                    onClick={() => setMobileOpen(false)}
-                                    className={({ isActive }) => `
-                    flex items-center gap-3 px-4 py-3 rounded-planner text-sm font-medium transition-colors
-                    ${isActive
-                                            ? 'bg-gold/40 text-ink'
-                                            : 'text-ink/60 hover:text-ink hover:bg-paper'
-                                        }
-                  `}
-                                >
-                                    <link.icon size={20} />
-                                    {link.label}
-                                </NavLink>
+                            {navLinks.map((link, index) => (
+                                link.to ? (
+                                    <NavLink
+                                        key={link.to}
+                                        to={link.to}
+                                        onClick={() => setMobileOpen(false)}
+                                        className={({ isActive }) => `
+                                            flex items-center gap-3 px-4 py-3 rounded-planner text-sm font-medium transition-colors
+                                            ${isActive
+                                                ? 'bg-gold/40 text-ink'
+                                                : 'text-ink/60 hover:text-ink hover:bg-paper'
+                                            }
+                                        `}
+                                    >
+                                        <link.icon size={20} />
+                                        {link.label}
+                                    </NavLink>
+                                ) : (
+                                    <button
+                                        key={index}
+                                        onClick={() => {
+                                            link.action();
+                                            setMobileOpen(false);
+                                        }}
+                                        className="w-full flex items-center gap-3 px-4 py-3 rounded-planner text-sm font-medium transition-colors text-ink/60 hover:text-ink hover:bg-paper text-left"
+                                    >
+                                        <link.icon size={20} />
+                                        {link.label}
+                                    </button>
+                                )
                             ))}
                             <button
                                 onClick={handleLogout}

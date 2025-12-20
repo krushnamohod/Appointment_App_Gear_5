@@ -152,6 +152,14 @@ const SelectDateTimeStep = () => {
     if (date && !isPast(date)) {
       setSelectedDate(date);
       setSelectedTime(null);
+      setSelectedSlotId(null);
+    }
+  };
+
+  const handleSlotSelect = (slot) => {
+    if (slot.available) {
+      setSelectedTime(slot.time);
+      setSelectedSlotId(slot.id);
     }
   };
 
@@ -160,6 +168,7 @@ const SelectDateTimeStep = () => {
       updateBooking({
         date: selectedDate.toISOString().split('T')[0],
         time: selectedTime,
+        slotId: selectedSlotId,
         numberOfPeople: manageCapacity ? numberOfPeople : 1
       });
       setStep(4);
@@ -237,7 +246,13 @@ const SelectDateTimeStep = () => {
 
         {/* Right Column - Time Slots */}
         <div>
-          <h3 className="font-serif text-lg text-terracotta mb-4">Slots</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-serif text-lg text-terracotta">Slots</h3>
+            <div className={`flex items-center gap-1 text-xs ${isConnected ? 'text-sage-dark' : 'text-ink/40'}`}>
+              {isConnected ? <Wifi size={12} /> : <WifiOff size={12} />}
+              <span>{isConnected ? 'Live' : 'Offline'}</span>
+            </div>
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
             {slots.length === 0 ? (
@@ -247,17 +262,22 @@ const SelectDateTimeStep = () => {
             ) : (
               slots.map((slot) => (
                 <button
-                  key={slot.time}
-                  onClick={() => setSelectedTime(slot.time)}
+                  key={slot.id || slot.time}
+                  onClick={() => handleSlotSelect(slot)}
                   disabled={!slot.available}
                   className={`
-                    py-3 px-4 text-center rounded-planner border transition-all text-sm
+                    py-3 px-4 text-center rounded-planner border transition-all text-sm relative
                     ${!slot.available ? 'border-ink/10 text-ink/30 cursor-not-allowed bg-ink/5' : ''}
                     ${slot.available && selectedTime !== slot.time ? 'border-terracotta/50 text-terracotta hover:border-terracotta hover:bg-terracotta/5' : ''}
                     ${selectedTime === slot.time ? 'bg-terracotta text-white border-terracotta' : ''}
                   `}
                 >
                   {slot.time}
+                  {slot.bookedCount !== undefined && slot.capacity && (
+                    <span className="block text-[10px] opacity-70 mt-0.5">
+                      {slot.capacity - slot.bookedCount} left
+                    </span>
+                  )}
                 </button>
               ))
             )}

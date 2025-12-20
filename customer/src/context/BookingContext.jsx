@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 export const useBookingStore = create((set) => ({
   step: 1,
+  isOpen: false, // Drawer open state
   booking: {
     service: null,
     provider: null,
@@ -13,6 +14,10 @@ export const useBookingStore = create((set) => ({
   loadingSlots: false,
 
   setStep: (step) => set({ step }),
+
+  openDrawer: () => set({ isOpen: true }),
+  closeDrawer: () => set({ isOpen: false }),
+  toggleDrawer: () => set((state) => ({ isOpen: !state.isOpen })),
 
   updateBooking: (data) =>
     set((state) => ({
@@ -36,3 +41,4 @@ export const useBookingStore = create((set) => ({
       availableSlots: []
     })
 }));
+

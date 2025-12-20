@@ -50,10 +50,6 @@ function App() {
             element={isAuthenticated ? <HomePage /> : <Navigate to="/login" />}
           />
           <Route
-            path="/book"
-            element={isAuthenticated ? <BookingFlow /> : <Navigate to="/login" />}
-          />
-          <Route
             path="/profile"
             element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" />}
           />
@@ -61,6 +57,9 @@ function App() {
           {/* 404 Fallback */}
           <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
         </Routes>
+
+        {/* Global Booking Widget */}
+        {isAuthenticated && <BookingFlow />}
       </main>
     </BrowserRouter>
   );
