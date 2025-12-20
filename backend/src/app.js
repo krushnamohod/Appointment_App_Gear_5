@@ -41,6 +41,7 @@ import authRoutes from "./routes/auth.route.js";
 import bookingRoutes from "./routes/booking.route.js";
 import providerRoutes from "./routes/provider.route.js";
 import reportRoutes from "./routes/report.route.js";
+import resourceRoutes from "./routes/resource.route.js";
 import serviceRoutes from "./routes/service.route.js";
 import slotRoutes from "./routes/slot.route.js";
 import userRoutes from "./routes/user.route.js";
@@ -56,6 +57,7 @@ app.use("/api/slots", slotRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/resources", resourceRoutes);
 
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 

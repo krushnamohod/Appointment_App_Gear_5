@@ -1,13 +1,13 @@
-import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-import { Settings } from "lucide-react";
+import { useAdminAuthStore } from "@/store/authStore";
+import { User } from "lucide-react";
 
 /**
- * @intent Top navigation bar with logo and action buttons
- * @param {object} props - Component props
- * @param {function} props.onSettings - Settings button click handler
+ * @intent Top navigation bar with logo and user profile
  */
-function TopNavBar({ className, onSettings }) {
+function TopNavBar({ className }) {
+    const { user } = useAdminAuthStore();
+
     return (
         <header
             className={cn(
@@ -33,18 +33,13 @@ function TopNavBar({ className, onSettings }) {
                 </div>
             </div>
 
-            {/* Right Actions */}
-            <nav className="flex items-center gap-2" aria-label="Main navigation">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-gray-600 hover:text-gray-900"
-                    onClick={onSettings}
-                >
-                    <Settings className="mr-2 h-4 w-4" aria-hidden="true" />
-                    Settings
-                </Button>
-            </nav>
+            {/* Right - User Profile */}
+            <div className="flex items-center gap-2">
+                <User className="h-5 w-5 text-terracotta" />
+                <span className="text-sm font-medium text-ink">
+                    {user?.name || "User"}
+                </span>
+            </div>
         </header>
     );
 }

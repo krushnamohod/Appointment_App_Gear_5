@@ -85,3 +85,14 @@ model Booking {
   slot       Slot          @relation(fields: [slotId], references: [id])
   createdAt  DateTime      @default(now())
 }
+
+model Resource {
+  id              String     @id @default(uuid())
+  name            String
+  capacity        Int        @default(1)
+  parentId        String?
+  parent          Resource?  @relation("ResourceHierarchy", fields: [parentId], references: [id])
+  linkedResources Resource[] @relation("ResourceHierarchy")
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+}

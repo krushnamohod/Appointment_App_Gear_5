@@ -161,4 +161,35 @@ export const useUsersStore = create((set, get) => ({
             return { success: false, error: error.message };
         }
     },
+
+    // Update user profile (name and email)
+    updateUserProfile: async (userId, profileData) => {
+        try {
+            const res = await fetch(`${API_URL}/users/${userId}/profile`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...get().getAuthHeader(),
+                },
+                body: JSON.stringify(profileData),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.message || "Failed to update user profile");
+            }
+
+            // Update user in the list
+            set((state) => ({
+                users: state.users.map((user) =>
+                    user.id === userId ? data.user : user
+                ),
+            }));
+
+            return { success: true, user: data.user };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    },
 }));

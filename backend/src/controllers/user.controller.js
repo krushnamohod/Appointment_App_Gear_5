@@ -155,3 +155,49 @@ export async function deleteUser(req, res, next) {
         next(error);
     }
 }
+
+/**
+ * Update user profile (name and email)
+ */
+export async function updateUserProfile(req, res, next) {
+    try {
+        const { id } = req.params;
+        const { name, email } = req.body;
+
+        // Check if user exists
+        const user = await prisma.user.findUnique({ where: { id } });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // If email is being changed, check if it's already taken
+        if (email && email !== user.email) {
+            const emailExists = await prisma.user.findUnique({ where: { email } });
+            if (emailExists) {
+                return res.status(400).json({ message: "Email already in use" });
+            }
+        }
+
+        // Build update data
+        const updateData = {};
+        if (name !== undefined) updateData.name = name;
+        if (email !== undefined) updateData.email = email;
+
+        const updatedUser = await prisma.user.update({
+            where: { id },
+            data: updateData,
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                isActive: true,
+                createdAt: true,
+            },
+        });
+
+        res.json({ user: updatedUser, message: "User profile updated successfully" });
+    } catch (error) {
+        next(error);
+    }
+}

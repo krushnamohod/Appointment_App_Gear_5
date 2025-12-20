@@ -1,5 +1,4 @@
 import { AnimatedSidebar } from "@/components/AnimatedSidebar";
-import { SettingsModal } from "@/components/SettingsModal";
 import { TopNavBar } from "@/components/TopNavBar";
 import "@/index.css";
 import { useAdminAuthStore } from "@/store/authStore";
@@ -12,14 +11,12 @@ import { ServiceManagement } from "@/views/ServiceManagement";
 import { ResourcesSettingsView, UserSettingsView } from "@/views/SettingsViews";
 import { UserRoleManagement } from "@/views/UserRoleManagement";
 import { BarChart3, Box, Calendar, HelpCircle, LogOut, Settings, User, Users } from "lucide-react";
-import { useState } from "react";
 
 /**
  * @intent Main app component with auth routing and sidebar layout
  */
 function App() {
     const { isAuthenticated, logout, role } = useAdminAuthStore();
-    const [showSettings, setShowSettings] = useState(false);
 
     // Show login page if not authenticated
     if (!isAuthenticated) {
@@ -93,20 +90,14 @@ function App() {
     return (
         <div className="flex flex-col h-screen overflow-hidden">
             {/* Universal Top Navigation */}
-            <TopNavBar
-                onSettings={() => setShowSettings(true)}
-            />
+            <TopNavBar />
 
             {/* Main Content Area (Sidebar + View) */}
             <div className="flex-1 overflow-hidden relative">
                 <AnimatedSidebar items={sidebarItems} />
             </div>
-
-            {/* Global Modals */}
-            <SettingsModal open={showSettings} onOpenChange={setShowSettings} />
         </div>
     );
 }
 
 export default App;
-

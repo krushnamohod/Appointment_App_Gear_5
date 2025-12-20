@@ -4,6 +4,7 @@ import {
     deleteUser,
     getAllUsers,
     toggleUserStatus,
+    updateUserProfile,
     updateUserRole
 } from "../controllers/user.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
@@ -24,6 +25,9 @@ router.patch("/:id/toggle", toggleUserStatus);
 
 // PATCH /api/users/:id/role - Update user role
 router.patch("/:id/role", updateUserRole);
+
+// PUT /api/users/:id/profile - Update user name and email
+router.put("/:id/profile", updateUserProfile);
 
 // DELETE /api/users/:id - Delete user
 router.delete("/:id", deleteUser);
