@@ -1,4 +1,4 @@
-import prisma from "../prisma/client.js";
+import prisma from "../../prisma/client.js";
 
 export async function getAvailableSlots(req, res) {
   const { serviceId } = req.query;

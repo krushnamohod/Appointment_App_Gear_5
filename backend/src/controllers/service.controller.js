@@ -1,4 +1,4 @@
-import prisma from "../prisma/client.js";
+import prisma from "../../prisma/client.js";
 
 export async function createService(req, res) {
   const service = await prisma.service.create({ data: req.body });
