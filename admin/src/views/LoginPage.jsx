@@ -1,5 +1,5 @@
 import { useAdminAuthStore } from "@/store/authStore";
-import { ArrowLeft, ArrowRight, Calendar, Eye, EyeOff, KeyRound, Lock, Mail } from "lucide-react";
+import { ArrowLeft, ArrowRight, Eye, EyeOff, KeyRound, Lock, Mail } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 /**
@@ -434,8 +434,8 @@ const SyncraLoginPage = () => {
 
                         <div className="absolute inset-0 flex flex-col items-center justify-center p-8 z-10">
                             <div className="mb-6">
-                                <div className="h-16 w-16 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-200">
-                                    <Calendar className="text-white h-8 w-8" />
+                                <div className="h-16 w-16 rounded-full bg-white flex items-center justify-center shadow-lg shadow-purple-200 overflow-hidden">
+                                    <img src="/logo_logo.png" alt="Syncra Logo" className="h-10 w-10 object-contain" />
                                 </div>
                             </div>
                             <h2 className="text-3xl font-bold mb-2 text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-indigo-600">
