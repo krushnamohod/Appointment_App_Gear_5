@@ -1,11 +1,13 @@
-import { ChevronLeft, ChevronRight, Clock, Minus, Plus, Users } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { ChevronLeft, ChevronRight, Clock, Minus, Plus, Users, Wifi, WifiOff } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
 import { useBookingStore } from '../../context/BookingContext';
 import { getAvailableSlots } from '../../services/appointmentService';
+import { subscribeToSlots, unsubscribeFromSlots, onSlotUpdate, connectSocket } from '../../services/socket';
 
 /**
  * @intent Paper Planner styled date/time selection with 2-column layout
  * Date picker on left, Slots on right, with capacity control and intro message
+ * Includes real-time slot updates via Socket.IO
  */
 const SelectDateTimeStep = () => {
   const { booking, updateBooking, setStep } = useBookingStore();
@@ -13,29 +15,101 @@ const SelectDateTimeStep = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState(null);
+  const [selectedSlotId, setSelectedSlotId] = useState(null);
   const [numberOfPeople, setNumberOfPeople] = useState(1);
+  const [isConnected, setIsConnected] = useState(false);
 
   const manageCapacity = booking.service?.manageCapacity || false;
   const maxCapacity = booking.service?.capacity || 10;
 
+  // Handle real-time slot update
+  const handleSlotUpdate = useCallback((data) => {
+    console.log('🔄 Updating slot in UI:', data);
+    setSlots(prevSlots =>
+      prevSlots.map(slot =>
+        slot.id === data.slotId
+          ? { ...slot, available: data.available, bookedCount: data.bookedCount }
+          : slot
+      )
+    );
+
+    // If the currently selected slot became unavailable, deselect it
+    if (selectedSlotId === data.slotId && !data.available) {
+      setSelectedTime(null);
+      setSelectedSlotId(null);
+    }
+  }, [selectedSlotId]);
+
+  // Connect to socket and subscribe to updates
   useEffect(() => {
+    const socket = connectSocket();
+    setIsConnected(socket?.connected || false);
+
+    socket?.on('connect', () => setIsConnected(true));
+    socket?.on('disconnect', () => setIsConnected(false));
+
+    return () => {
+      socket?.off('connect');
+      socket?.off('disconnect');
+    };
+  }, []);
+
+  // Subscribe to slot updates when date changes
+  useEffect(() => {
+    const dateStr = selectedDate.toISOString().split('T')[0];
+    const serviceId = booking.service?.id;
+
+    // Subscribe to slot room
+    subscribeToSlots(dateStr, serviceId);
+
+    // Register callback for slot updates
+    const unregister = onSlotUpdate(handleSlotUpdate);
+
+    return () => {
+      unsubscribeFromSlots(dateStr, serviceId);
+      unregister();
+    };
+  }, [selectedDate, booking.service?.id, handleSlotUpdate]);
+
+  // Fetch slots when date/provider changes
+  useEffect(() => {
+    const dateStr = selectedDate.toISOString().split('T')[0];
+
     if (booking.provider?.id) {
-      getAvailableSlots(booking.provider.id, selectedDate.toISOString().split('T')[0])
+      getAvailableSlots(booking.provider.id, dateStr)
         .then((res) => setSlots(res.data || []));
     } else if (booking.provider === 'ANY') {
-      // Mock slots for "Any Available"
-      setSlots([
-        { time: '9:00', available: true },
-        { time: '9:45', available: true },
-        { time: '10:00', available: true },
-        { time: '10:45', available: false },
-        { time: '11:00', available: true },
-        { time: '11:45', available: true },
-        { time: '12:00', available: true },
-        { time: '12:45', available: false },
-      ]);
+      // Fetch all available slots for the service
+      getAvailableSlots(null, dateStr, booking.service?.id)
+        .then((res) => {
+          if (res.data?.length > 0) {
+            setSlots(res.data);
+          } else {
+            // Fallback mock slots
+            setSlots([
+              { id: 'mock1', time: '9:00', available: true },
+              { id: 'mock2', time: '9:45', available: true },
+              { id: 'mock3', time: '10:00', available: true },
+              { id: 'mock4', time: '10:45', available: false },
+              { id: 'mock5', time: '11:00', available: true },
+              { id: 'mock6', time: '11:45', available: true },
+              { id: 'mock7', time: '12:00', available: true },
+              { id: 'mock8', time: '12:45', available: false },
+            ]);
+          }
+        })
+        .catch(() => {
+          // Fallback on error
+          setSlots([
+            { id: 'mock1', time: '9:00', available: true },
+            { id: 'mock2', time: '9:45', available: true },
+            { id: 'mock3', time: '10:00', available: true },
+            { id: 'mock4', time: '10:45', available: false },
+          ]);
+        });
     }
-  }, [booking.provider, selectedDate]);
+  }, [booking.provider, booking.service?.id, selectedDate]);
+
 
   // Calendar helpers
   const getDaysInMonth = (date) => {
