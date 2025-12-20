@@ -174,10 +174,7 @@ function AppointmentFormView({ appointment, onBack, onReporting, onSettings }) {
             publishAppointment(appointment.id, appointmentData);
         } else {
             // Add new appointment
-            addAppointment({
-                ...appointmentData,
-                upcomingMeetings: 0,
-            });
+            addAppointment(appointmentData);
         }
 
         // Navigate back to list view
