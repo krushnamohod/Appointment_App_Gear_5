@@ -164,3 +164,20 @@ export async function updateProfile(req, res, next) {
     next(error);
   }
 }
+
+/**
+ * Get current user (me)
+ */
+export async function getMe(req, res, next) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id }
+    });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const { password: _, ...userWithoutPassword } = user;
+    res.json(userWithoutPassword);
+  } catch (error) {
+    next(error);
+  }
+}

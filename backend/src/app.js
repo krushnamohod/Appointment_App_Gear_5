@@ -1,3 +1,4 @@
+// Node server entry point - triggered restart
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
@@ -16,6 +17,7 @@ const httpServer = createServer(app);
 initializeSocket(httpServer);
 
 app.use(express.json());
+app.use("/uploads", express.static("uploads"));
 app.use(cors({
   origin: [
     "http://localhost:5173",
@@ -45,6 +47,7 @@ import resourceRoutes from "./routes/resource.route.js";
 import serviceRoutes from "./routes/service.route.js";
 import slotRoutes from "./routes/slot.route.js";
 import userRoutes from "./routes/user.route.js";
+import uploadRoutes from "./routes/upload.route.js";
 
 app.get("/", (req, res) => {
   res.send("Appointment Booking Backend Running 🚀 (with Socket.IO)");
@@ -58,6 +61,7 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/resources", resourceRoutes);
+app.use("/api/upload", uploadRoutes);
 
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 

@@ -10,22 +10,19 @@ import { authMiddleware } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-// Apply auth middleware to all resource routes
-router.use(authMiddleware);
-
-// GET /api/resources - Get all resources
+// GET /api/resources - Get all resources (Public)
 router.get("/", getAllResources);
 
-// GET /api/resources/:id - Get a single resource
+// GET /api/resources/:id - Get a single resource (Public)
 router.get("/:id", getResourceById);
 
-// POST /api/resources - Create a new resource
-router.post("/", createResource);
+// POST /api/resources - Create a new resource (Protected)
+router.post("/", authMiddleware, createResource);
 
-// PUT /api/resources/:id - Update a resource
-router.put("/:id", updateResource);
+// PUT /api/resources/:id - Update a resource (Protected)
+router.put("/:id", authMiddleware, updateResource);
 
-// DELETE /api/resources/:id - Delete a resource
-router.delete("/:id", deleteResource);
+// DELETE /api/resources/:id - Delete a resource (Protected)
+router.delete("/:id", authMiddleware, deleteResource);
 
 export default router;

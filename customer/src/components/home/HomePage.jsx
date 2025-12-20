@@ -51,8 +51,8 @@ const HomePage = () => {
                 <br />At Your Fingertips
               </h1>
               <p className="text-ink/60 text-xl max-w-xl mb-8 leading-relaxed">
-                From luxury badminton courts to professional cricket pitches.
-                Experience elite sports infrastructure with seamless, real-time booking.
+                Premium Facilities At Your Fingertips
+From luxury badminton courts to dental care, healthcare to babysitting. Experience elite sports infrastructure and essential lifestyle services with seamless, real-time booking.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">

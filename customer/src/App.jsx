@@ -14,11 +14,22 @@ import Navbar from './components/common/Navbar';
 import HomePage from './components/home/HomePage';
 import ProfilePage from './components/profile/ProfilePage';
 
+import { useEffect } from 'react';
+import { getMe } from './services/authService';
+
 /**
  * @intent Main app router with auth-based redirects and navigation
  */
 function App() {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, setUser, logout } = useAuthStore();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      getMe()
+        .then(res => setUser(res.data))
+        .catch(() => logout());
+    }
+  }, [isAuthenticated, setUser, logout]);
 
   return (
     <BrowserRouter>

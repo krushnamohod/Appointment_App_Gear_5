@@ -33,6 +33,10 @@ export const resetPassword = (token, password) => {
   return Promise.resolve({ data: { message: 'Password reset successful' } });
 };
 
+export const getMe = () => {
+  return api.get('/auth/me');
+};
+
 export const updateProfile = (data) => {
   return api.put('/auth/profile', data);
 };
