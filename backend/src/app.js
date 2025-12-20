@@ -1,21 +1,9 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
-import fs from "fs";
 import { createServer } from "http";
 import morgan from "morgan";
-import path from "path";
-import { fileURLToPath } from "url";
 import { initializeSocket } from "./services/socketService.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Ensure uploads folder exists
-const uploadDir = path.join(process.cwd(), 'uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
-}
 
 dotenv.config();
 
@@ -39,9 +27,6 @@ app.use(cors({
 }));
 app.use(morgan("dev"));
 
-// Serve static files from uploads folder
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
-
 // Request Body Logger
 app.use((req, res, next) => {
   if (req.body && Object.keys(req.body).length > 0) {
@@ -55,12 +40,13 @@ app.use((req, res, next) => {
 import authRoutes from "./routes/auth.route.js";
 import bookingRoutes from "./routes/booking.route.js";
 import providerRoutes from "./routes/provider.route.js";
+import reportRoutes from "./routes/report.route.js";
 import serviceRoutes from "./routes/service.route.js";
 import slotRoutes from "./routes/slot.route.js";
-// import chatbotRoutes from "./routes/chatbot.route.js";
+import userRoutes from "./routes/user.route.js";
 
 app.get("/", (req, res) => {
-  res.send("Appointment Booking Backend Running 🚀 (with Socket.IO + AI Chat)");
+  res.send("Appointment Booking Backend Running 🚀 (with Socket.IO)");
 });
 
 app.use("/api/auth", authRoutes);
@@ -68,7 +54,8 @@ app.use("/api/services", serviceRoutes);
 app.use("/api/providers", providerRoutes);
 app.use("/api/slots", slotRoutes);
 app.use("/api/bookings", bookingRoutes);
-// app.use("/api/chat", chatbotRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/reports", reportRoutes);
 
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 
