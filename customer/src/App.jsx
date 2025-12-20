@@ -9,6 +9,7 @@ import VerifyOTPPage from './components/auth/VerifyOTPPage';
 
 // App Components
 import BookingFlow from './components/booking/BookingFlow';
+import ChatWidget from './components/chat/ChatWidget';
 import Navbar from './components/common/Navbar';
 import HomePage from './components/home/HomePage';
 import ProfilePage from './components/profile/ProfilePage';
@@ -60,6 +61,9 @@ function App() {
 
         {/* Global Booking Widget */}
         {isAuthenticated && <BookingFlow />}
+
+        {/* AI Chat Assistant */}
+        {isAuthenticated && <ChatWidget />}
       </main>
     </BrowserRouter>
   );

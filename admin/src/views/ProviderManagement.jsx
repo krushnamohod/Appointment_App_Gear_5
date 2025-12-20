@@ -8,7 +8,7 @@ export function ProviderManagement() {
     const [providers, setProviders] = useState([]);
     const [services, setServices] = useState([]);
     const [isEditing, setIsEditing] = useState(false);
-    const [currentProvider, setCurrentProvider] = useState({ name: "", serviceId: "" });
+    const [currentProvider, setCurrentProvider] = useState({ name: "", serviceId: "", avatar: "" });
     const { token } = useAdminAuthStore();
 
     useEffect(() => {
@@ -78,7 +78,7 @@ export function ProviderManagement() {
 
             if (res.ok) {
                 setIsEditing(false);
-                setCurrentProvider({ name: "", serviceId: "" });
+                setCurrentProvider({ name: "", serviceId: "", avatar: "" });
                 fetchProviders();
             }
         } catch (error) {
@@ -96,7 +96,7 @@ export function ProviderManagement() {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Provider Management</h1>
                 <button
-                    onClick={() => { setIsEditing(true); setCurrentProvider({ name: "", serviceId: "" }); }}
+                    onClick={() => { setIsEditing(true); setCurrentProvider({ name: "", serviceId: "", avatar: "" }); }}
                     className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
                 >
                     <Plus size={20} /> Add Provider
@@ -123,6 +123,15 @@ export function ProviderManagement() {
                                 <option key={s.id} value={s.id}>{s.name}</option>
                             ))}
                         </select>
+                        <div className="col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Avatar URL</label>
+                            <input
+                                className="border p-2 rounded w-full"
+                                placeholder="https://images.unsplash.com/photo-1537368910025-700350fe46c7..."
+                                value={currentProvider.avatar || ""}
+                                onChange={e => setCurrentProvider({ ...currentProvider, avatar: e.target.value })}
+                            />
+                        </div>
                     </div>
                     <div className="flex gap-2">
                         <button onClick={handleSave} className="flex items-center gap-1 bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"><Save size={16} /> Save</button>
@@ -143,7 +152,18 @@ export function ProviderManagement() {
                     <tbody>
                         {providers.map((provider) => (
                             <tr key={provider.id} className="border-b last:border-0">
-                                <td className="p-4 font-medium">{provider.name}</td>
+                                <td className="p-4 font-medium">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-gray-100 flex-shrink-0 overflow-hidden border">
+                                            {provider.avatar ? (
+                                                <img src={provider.avatar} alt={provider.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-gray-400 text-[10px]">No Avatar</div>
+                                            )}
+                                        </div>
+                                        {provider.name}
+                                    </div>
+                                </td>
                                 <td className="p-4">{getServiceName(provider.serviceId)}</td>
                                 <td className="p-4 text-right">
                                     <button

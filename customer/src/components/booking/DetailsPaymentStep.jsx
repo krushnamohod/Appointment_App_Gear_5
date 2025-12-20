@@ -30,16 +30,22 @@ const DetailsPaymentStep = () => {
   });
 
   const onSubmit = async (data) => {
-    // Save form data to booking
-    updateBooking({ details: data });
+    const { answers, ...details } = data;
+
+    const bookingPayload = {
+      ...booking,
+      details,
+      answers,
+      capacity: booking.numberOfPeople || 1
+    };
+
+    // Save form data to booking store
+    updateBooking({ details, answers });
 
     if (isFreeAppointment) {
       // Free appointment - book directly and go to confirmation
       try {
-        await createBooking({
-          ...booking,
-          details: data
-        });
+        await createBooking(bookingPayload);
         toast.success('Appointment booked successfully!');
         setStep(5); // Go to confirmation step
       } catch (error) {
@@ -126,6 +132,40 @@ const DetailsPaymentStep = () => {
               <p className="text-error text-sm mt-1">{errors.phone.message}</p>
             )}
           </div>
+
+          {/* Dynamic Questions */}
+          {(booking.service?.questions || []).length > 0 && (
+            <div className="pt-4 border-t border-ink/10 space-y-5">
+              <h3 className="font-medium text-ink/70">Additional Information</h3>
+              {booking.service.questions.map((q) => (
+                <div key={q.id}>
+                  <label className="block text-sm font-medium text-ink/70 mb-2">
+                    {q.title} {q.required && <span className="text-error">*</span>}
+                  </label>
+                  {q.type === 'textarea' ? (
+                    <textarea
+                      {...register(`answers.${q.title}`, { required: q.required ? `${q.title} is required` : false })}
+                      placeholder={`Enter ${q.title.toLowerCase()}`}
+                      className="input-planner min-h-[100px] py-3"
+                    />
+                  ) : (
+                    <input
+                      {...register(`answers.${q.title}`, {
+                        required: q.required ? `${q.title} is required` : false,
+                        valueAsNumber: q.type === 'number'
+                      })}
+                      type={q.type}
+                      placeholder={`Enter ${q.title.toLowerCase()}`}
+                      className="input-planner"
+                    />
+                  )}
+                  {errors?.answers?.[q.title] && (
+                    <p className="text-error text-sm mt-1">{errors.answers[q.title].message}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Location Field */}
           <div>

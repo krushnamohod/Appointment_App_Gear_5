@@ -26,8 +26,10 @@ export const createBooking = async (data) => {
 
   return api.post('/bookings', {
     serviceId: data.service.id,
-    slotId: data.slotId, // Ensure frontend passes this
-    date: data.date
+    slotId: data.slotId,
+    date: data.date,
+    capacity: data.capacity,
+    answers: data.answers
   });
 };
 

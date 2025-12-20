@@ -96,9 +96,13 @@ const ProfilePage = () => {
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row items-center gap-6">
             {/* Avatar */}
-            <div className="w-20 h-20 bg-terracotta rounded-planner flex items-center justify-center text-3xl font-serif text-white"
+            <div className="w-20 h-20 bg-terracotta rounded-planner flex items-center justify-center text-3xl font-serif text-white overflow-hidden"
               style={{ boxShadow: '3px 3px 0px rgba(45, 45, 45, 0.1)' }}>
-              {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+              {user?.avatar ? (
+                <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+              ) : (
+                user?.name?.charAt(0)?.toUpperCase() || 'U'
+              )}
             </div>
 
             {/* User Info */}
@@ -155,8 +159,8 @@ const ProfilePage = () => {
                   key={type.id}
                   onClick={() => setTypeFilter(type.id)}
                   className={`px-4 py-2 text-sm font-medium transition-colors ${typeFilter === type.id
-                      ? 'bg-terracotta text-white'
-                      : 'text-ink/60 hover:text-ink hover:bg-paper'
+                    ? 'bg-terracotta text-white'
+                    : 'text-ink/60 hover:text-ink hover:bg-paper'
                     }`}
                 >
                   {type.label}
@@ -275,8 +279,14 @@ const ProfilePage = () => {
                           </div>
                           <div className="flex items-center gap-2 text-sm text-ink/70">
                             <MapPin size={14} className="text-sage-dark" />
-                            <span>Doctor's Office</span>
+                            <span>{appt.service?.venue || "Our Office"}</span>
                           </div>
+                          {appt.capacity > 1 && (
+                            <div className="flex items-center gap-2 text-sm text-ink/70">
+                              <Users size={14} className="text-blue-500" />
+                              <span>{appt.capacity} People</span>
+                            </div>
+                          )}
                         </div>
 
                         {/* Resources */}
@@ -304,7 +314,7 @@ const ProfilePage = () => {
                       {/* Introduction/Notes */}
                       <div className="mt-4 pt-4 border-t border-ink/10">
                         <p className="text-sm text-ink/60 italic">
-                          {appt.notes || "Thank you for booking with us. We look forward to meeting you!"}
+                          {appt.service?.confirmationMessage || "Thank you for booking with us. We look forward to meeting you!"}
                         </p>
                       </div>
 

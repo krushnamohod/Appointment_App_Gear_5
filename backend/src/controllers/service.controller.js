@@ -32,6 +32,7 @@ export async function listServices(req, res) {
         id: service.id,
         name: service.name,
         duration: service.duration,
+        image: service.image,
         isPublished: service.isPublished,
         resources,
         upcomingMeetings

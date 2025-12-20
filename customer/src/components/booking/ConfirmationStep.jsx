@@ -134,9 +134,8 @@ const ConfirmationStep = () => {
                     </div>
                     <div>
                         <p className="text-sm text-ink/50 mb-1">Venue</p>
-                        <p className="font-serif text-lg text-ink">Doctor's Office</p>
-                        <p className="text-ink/60">64 Doctor Street</p>
-                        <p className="text-ink/60">Springfield 380005</p>
+                        <p className="font-serif text-lg text-ink">{booking.service?.venue || "Our Office"}</p>
+                        <p className="text-ink/60">{booking.provider?.name ? `With: ${booking.provider.name}` : "Any available provider"}</p>
                     </div>
                 </div>
 
@@ -144,7 +143,7 @@ const ConfirmationStep = () => {
                 {!requiresManualConfirmation && (
                     <div className="bg-paper border border-ink/10 rounded-planner p-4 text-center">
                         <p className="text-ink/70 italic">
-                            Thank you for your trust, we look forward to meeting you!
+                            {booking.service?.confirmationMessage || "Thank you for your trust, we look forward to meeting you!"}
                         </p>
                     </div>
                 )}

@@ -72,9 +72,18 @@ const Navbar = () => {
 
                     {/* User & Logout */}
                     <div className="hidden md:flex items-center gap-4">
-                        <span className="text-sm text-ink/60">
-                            {user?.name || user?.email}
-                        </span>
+                        <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-terracotta flex items-center justify-center text-xs font-serif text-white overflow-hidden border border-ink/10">
+                                {user?.avatar ? (
+                                    <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                                ) : (
+                                    user?.name?.charAt(0)?.toUpperCase() || 'U'
+                                )}
+                            </div>
+                            <span className="text-sm text-ink/60 font-medium">
+                                {user?.name || user?.email}
+                            </span>
+                        </div>
                         <button
                             onClick={handleLogout}
                             className="flex items-center gap-2 px-4 py-2 text-sm text-ink/60 hover:text-error border border-ink/10 rounded-planner hover:border-error/30 transition-colors"
