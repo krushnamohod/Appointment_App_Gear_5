@@ -9,9 +9,15 @@ export const getProviders = async (serviceId) => {
   return api.get('/providers', { params });
 };
 
-export const getAvailableSlots = async (providerId, date, serviceId) => {
+export const getResources = async (type) => {
+  const params = type ? { type } : {};
+  return api.get('/resources', { params });
+};
+
+export const getAvailableSlots = async (providerId, resourceId, date, serviceId) => {
   const params = { date };
   if (providerId) params.providerId = providerId;
+  if (resourceId) params.resourceId = resourceId;
   if (serviceId) params.serviceId = serviceId;
   return api.get('/slots', { params });
 };

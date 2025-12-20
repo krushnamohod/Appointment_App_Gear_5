@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Users, User, Briefcase, Loader2 } from 'lucide-react';
-import { getProviders } from '../../services/appointmentService';
+import { getProviders, getResources } from '../../services/appointmentService';
 import { useBookingStore } from '../../context/BookingContext';
 
 /**
@@ -14,16 +14,30 @@ const SelectProviderStep = () => {
 
   useEffect(() => {
     setLoading(true);
-    getProviders(booking.service?.id)
-      .then((res) => {
-        setProviders(res.data || []);
-      })
-      .catch((err) => {
-        console.error('Failed to load providers', err);
-        setError('Failed to load available resources');
-      })
-      .finally(() => setLoading(false));
-  }, [booking.service?.id]);
+    const service = booking.service;
+
+    if (service?.resourceType) {
+      getResources(service.resourceType)
+        .then((res) => {
+          setProviders(res.data?.resources || []);
+        })
+        .catch((err) => {
+          console.error('Failed to load resources', err);
+          setError('Failed to load available resources');
+        })
+        .finally(() => setLoading(false));
+    } else {
+      getProviders(service?.id)
+        .then((res) => {
+          setProviders(res.data || []);
+        })
+        .catch((err) => {
+          console.error('Failed to load providers', err);
+          setError('Failed to load available experts');
+        })
+        .finally(() => setLoading(false));
+    }
+  }, [booking.service]);
 
   // Generate avatar initials
   const getInitials = (name) => {
@@ -57,11 +71,27 @@ const SelectProviderStep = () => {
     );
   }
 
-  // Build resource options (Any + specific providers)
+  // Build selection options
+  const isResource = !!booking.service?.resourceType;
   const resourceOptions = [
     { id: 'ANY', name: 'Any Available', isAny: true },
     ...providers.map(p => ({ ...p, isAny: false }))
   ];
+
+  const handleSelect = (item) => {
+    if (isResource) {
+      updateBooking({ resource: item.isAny ? 'ANY' : item, provider: null });
+    } else {
+      updateBooking({ provider: item.isAny ? 'ANY' : item, resource: null });
+    }
+  };
+
+  const isSelected = (item) => {
+    if (isResource) {
+      return (item.isAny && booking.resource === 'ANY') || (!item.isAny && booking.resource?.id === item.id);
+    }
+    return (item.isAny && booking.provider === 'ANY') || (!item.isAny && booking.provider?.id === item.id);
+  };
 
   return (
     <div className="card-planner p-6">
@@ -73,10 +103,10 @@ const SelectProviderStep = () => {
         {resourceOptions.map((resource) => (
           <button
             key={resource.id}
-            onClick={() => updateBooking({ provider: resource.isAny ? 'ANY' : resource })}
+            onClick={() => handleSelect(resource)}
             className={`
               card-planner p-6 flex flex-col items-center justify-center min-h-[160px] transition-all hover:shadow-md
-              ${(resource.isAny && booking.provider === 'ANY') || (!resource.isAny && booking.provider?.id === resource.id)
+              ${isSelected(resource)
                 ? 'ring-2 ring-terracotta'
                 : 'hover:border-terracotta/50'
               }
@@ -97,9 +127,9 @@ const SelectProviderStep = () => {
               </div>
             )}
 
-            {/* Resource Name */}
+            {/* Name */}
             <h3 className="font-serif text-xl text-terracotta">
-              {resource.isAny ? 'A1/R1' : `A${providers.indexOf(resource) + 2}/R${providers.indexOf(resource) + 2}`}
+              {isResource ? (resource.isAny ? 'C1' : `C${providers.indexOf(resource) + 2}`) : (resource.isAny ? 'A1' : `A${providers.indexOf(resource) + 2}`)}
             </h3>
             <p className="text-sm text-ink/60 mt-1">{resource.name}</p>
 
@@ -112,7 +142,7 @@ const SelectProviderStep = () => {
             )}
 
             {/* Selected indicator */}
-            {((resource.isAny && booking.provider === 'ANY') || (!resource.isAny && booking.provider?.id === resource.id)) && (
+            {isSelected(resource) && (
               <div className="absolute top-3 right-3 w-6 h-6 bg-terracotta rounded-full flex items-center justify-center">
                 <span className="text-white text-sm">✓</span>
               </div>
@@ -140,7 +170,7 @@ const SelectProviderStep = () => {
 
         <button
           onClick={() => setStep(3)}
-          disabled={!booking.provider}
+          disabled={!booking.provider && !booking.resource}
           className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Continue

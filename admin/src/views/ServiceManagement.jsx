@@ -110,6 +110,20 @@ export function ServiceManagement() {
                             />
                         </div>
                         <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Resource Category</label>
+                            <select
+                                className="border p-2 rounded w-full"
+                                value={currentService.resourceType || ""}
+                                onChange={e => setCurrentService({ ...currentService, resourceType: e.target.value })}
+                            >
+                                <option value="">None (Personal)</option>
+                                <option value="COURT">Court</option>
+                                <option value="VENUE">Venue</option>
+                                <option value="EQUIPMENT">Equipment</option>
+                                <option value="ROOM">Room</option>
+                            </select>
+                        </div>
+                        <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Capacity</label>
                             <input
                                 className="border p-2 rounded w-full"

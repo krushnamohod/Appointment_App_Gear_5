@@ -5,7 +5,11 @@ import prisma from "../../prisma/client.js";
  */
 export async function getAllResources(req, res, next) {
     try {
+        const { type } = req.query;
+        const where = type ? { type } : {};
+
         const resources = await prisma.resource.findMany({
+            where,
             orderBy: { createdAt: 'desc' },
             include: {
                 linkedResources: {
@@ -57,7 +61,7 @@ export async function getResourceById(req, res, next) {
  */
 export async function createResource(req, res, next) {
     try {
-        const { name, capacity, linkedResourceIds } = req.body;
+        const { name, capacity, linkedResourceIds, type, workingHours } = req.body;
 
         if (!name) {
             return res.status(400).json({ message: "Name is required" });
@@ -67,6 +71,8 @@ export async function createResource(req, res, next) {
             data: {
                 name,
                 capacity: capacity || 1,
+                type: type || 'COURT',
+                workingHours: workingHours || null,
                 linkedResources: linkedResourceIds?.length > 0 ? {
                     connect: linkedResourceIds.map(id => ({ id }))
                 } : undefined
@@ -94,7 +100,7 @@ export async function createResource(req, res, next) {
 export async function updateResource(req, res, next) {
     try {
         const { id } = req.params;
-        const { name, capacity, linkedResourceIds } = req.body;
+        const { name, capacity, linkedResourceIds, type, workingHours } = req.body;
 
         // Check if resource exists
         const existing = await prisma.resource.findUnique({ where: { id } });
@@ -106,6 +112,8 @@ export async function updateResource(req, res, next) {
         const updateData = {};
         if (name !== undefined) updateData.name = name;
         if (capacity !== undefined) updateData.capacity = capacity;
+        if (type !== undefined) updateData.type = type;
+        if (workingHours !== undefined) updateData.workingHours = workingHours;
 
         // Handle linked resources - disconnect all first, then connect new ones
         if (linkedResourceIds !== undefined) {

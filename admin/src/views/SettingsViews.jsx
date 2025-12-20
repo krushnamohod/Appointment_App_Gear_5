@@ -146,6 +146,16 @@ function UserSettingsView() {
     );
 }
 
+const defaultWorkingHours = {
+    monday: { enabled: true, slots: [{ start: "09:00", end: "17:00" }] },
+    tuesday: { enabled: true, slots: [{ start: "09:00", end: "17:00" }] },
+    wednesday: { enabled: true, slots: [{ start: "09:00", end: "17:00" }] },
+    thursday: { enabled: true, slots: [{ start: "09:00", end: "17:00" }] },
+    friday: { enabled: true, slots: [{ start: "09:00", end: "17:00" }] },
+    saturday: { enabled: false, slots: [{ start: "10:00", end: "14:00" }] },
+    sunday: { enabled: false, slots: [{ start: "10:00", end: "14:00" }] },
+};
+
 /**
  * @intent Resources settings view with CRUD operations
  */
@@ -153,7 +163,7 @@ function ResourcesSettingsView() {
     const { resources, loading, error, fetchResources, createResource, updateResource, deleteResource } = useResourcesStore();
     const [selectedResource, setSelectedResource] = useState(null);
     const [showForm, setShowForm] = useState(false);
-    const [formData, setFormData] = useState({ name: "", capacity: 1, linkedResourceIds: [] });
+    const [formData, setFormData] = useState({ name: "", capacity: 1, type: "COURT", workingHours: defaultWorkingHours, linkedResourceIds: [] });
     const [deleteConfirm, setDeleteConfirm] = useState(null);
     const [linkedDropdownOpen, setLinkedDropdownOpen] = useState(false);
 
@@ -163,7 +173,7 @@ function ResourcesSettingsView() {
 
     const handleNew = () => {
         setSelectedResource(null);
-        setFormData({ name: "", capacity: 1, linkedResourceIds: [] });
+        setFormData({ name: "", capacity: 1, type: "COURT", workingHours: defaultWorkingHours, linkedResourceIds: [] });
         setShowForm(true);
     };
 
@@ -172,6 +182,8 @@ function ResourcesSettingsView() {
         setFormData({
             name: resource.name,
             capacity: resource.capacity,
+            type: resource.type || "COURT",
+            workingHours: resource.workingHours || defaultWorkingHours,
             linkedResourceIds: resource.linkedResources?.map(r => r.id) || []
         });
         setShowForm(true);
@@ -262,33 +274,106 @@ function ResourcesSettingsView() {
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        {/* Name */}
-                        <div>
-                            <Label className="block text-sm font-medium text-ink mb-1">
-                                Name <span className="text-terracotta">*</span>
-                            </Label>
-                            <Input
-                                type="text"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                placeholder="e.g., Court 1"
-                                className="input-field"
-                                required
-                            />
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Name */}
+                            <div>
+                                <Label className="block text-sm font-medium text-ink mb-1">
+                                    Name <span className="text-terracotta">*</span>
+                                </Label>
+                                <Input
+                                    type="text"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    placeholder="e.g., Court 1"
+                                    className="input-field"
+                                    required
+                                />
+                            </div>
+
+                            {/* Type */}
+                            <div>
+                                <Label className="block text-sm font-medium text-ink mb-1">
+                                    Type
+                                </Label>
+                                <select
+                                    value={formData.type}
+                                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                                    className="input-field"
+                                >
+                                    <option value="COURT">Court</option>
+                                    <option value="VENUE">Venue</option>
+                                    <option value="EQUIPMENT">Equipment</option>
+                                    <option value="ROOM">Room</option>
+                                </select>
+                            </div>
+
+                            {/* Capacity */}
+                            <div>
+                                <Label className="block text-sm font-medium text-ink mb-1">
+                                    Capacity (Total slots)
+                                </Label>
+                                <Input
+                                    type="number"
+                                    min="1"
+                                    value={formData.capacity}
+                                    onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) || 1 })}
+                                    className="input-field w-full"
+                                />
+                            </div>
                         </div>
 
-                        {/* Capacity */}
-                        <div>
-                            <Label className="block text-sm font-medium text-ink mb-1">
-                                Capacity
+                        {/* Working Hours/Schedule */}
+                        <div className="border-t pt-4">
+                            <Label className="block text-sm font-medium text-ink mb-2">
+                                Weekly Availability Schedule
                             </Label>
-                            <Input
-                                type="number"
-                                min="1"
-                                value={formData.capacity}
-                                onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) || 1 })}
-                                className="input-field w-32"
-                            />
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                {Object.keys(formData.workingHours).map((day) => (
+                                    <div key={day} className="p-2 border rounded-lg bg-paper-light">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="capitalize font-medium text-sm">{day}</span>
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.workingHours[day].enabled}
+                                                onChange={(e) => {
+                                                    const updatedHours = { ...formData.workingHours };
+                                                    updatedHours[day].enabled = e.target.checked;
+                                                    setFormData({ ...formData, workingHours: updatedHours });
+                                                }}
+                                            />
+                                        </div>
+                                        {formData.workingHours[day].enabled && (
+                                            <div className="space-y-1">
+                                                {formData.workingHours[day].slots.map((slot, idx) => (
+                                                    <div key={idx} className="flex items-center gap-1 text-[10px]">
+                                                        <input
+                                                            type="time"
+                                                            value={slot.start}
+                                                            onChange={(e) => {
+                                                                const updatedHours = { ...formData.workingHours };
+                                                                updatedHours[day].slots[idx].start = e.target.value;
+                                                                setFormData({ ...formData, workingHours: updatedHours });
+                                                            }}
+                                                            className="border rounded px-1 py-0.5 w-full"
+                                                        />
+                                                        <span>-</span>
+                                                        <input
+                                                            type="time"
+                                                            value={slot.end}
+                                                            onChange={(e) => {
+                                                                const updatedHours = { ...formData.workingHours };
+                                                                updatedHours[day].slots[idx].end = e.target.value;
+                                                                setFormData({ ...formData, workingHours: updatedHours });
+                                                            }}
+                                                            className="border rounded px-1 py-0.5 w-full"
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
                         {/* Linked Resources */}

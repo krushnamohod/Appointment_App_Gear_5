@@ -48,7 +48,8 @@ export async function createBooking(req, res, next) {
           where: { id: finalSlotId },
           include: {
             service: true,
-            provider: true
+            provider: true,
+            resource: true
           }
         });
 
@@ -91,7 +92,8 @@ export async function createBooking(req, res, next) {
             slot: {
               include: {
                 service: true,
-                provider: true
+                provider: true,
+                resource: true
               }
             }
           }
@@ -123,7 +125,8 @@ export async function createBooking(req, res, next) {
       emitBookingConfirmation(userId, {
         service: booking.slot?.service?.name || 'Service',
         date: booking.slot?.startTime,
-        provider: booking.slot?.provider?.name
+        provider: booking.slot?.provider?.name,
+        resource: booking.slot?.resource?.name
       });
 
       return res.status(201).json({
@@ -158,7 +161,8 @@ export async function getUserBookings(req, res, next) {
         slot: {
           include: {
             service: true,
-            provider: true
+            provider: true,
+            resource: true
           }
         }
       },
@@ -178,6 +182,7 @@ export async function getUserBookings(req, res, next) {
       totalPrice: b.totalPrice,
       service: b.slot?.service,
       provider: b.slot?.provider,
+      resource: b.slot?.resource,
       createdAt: b.createdAt
     }));
 

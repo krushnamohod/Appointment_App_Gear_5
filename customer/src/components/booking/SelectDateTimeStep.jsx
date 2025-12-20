@@ -73,16 +73,19 @@ const SelectDateTimeStep = () => {
     };
   }, [selectedDate, booking.service?.id, handleSlotUpdate]);
 
-  // Fetch slots when date/provider changes
+  // Fetch slots when date/provider/resource changes
   useEffect(() => {
     const dateStr = selectedDate.toISOString().split('T')[0];
 
-    if (booking.provider?.id) {
-      getAvailableSlots(booking.provider.id, dateStr)
+    if (booking.resource?.id) {
+      getAvailableSlots(null, booking.resource.id, dateStr, booking.service?.id)
         .then((res) => setSlots(res.data || []));
-    } else if (booking.provider === 'ANY') {
+    } else if (booking.provider?.id) {
+      getAvailableSlots(booking.provider.id, null, dateStr, booking.service?.id)
+        .then((res) => setSlots(res.data || []));
+    } else if (booking.provider === 'ANY' || booking.resource === 'ANY') {
       // Fetch all available slots for the service
-      getAvailableSlots(null, dateStr, booking.service?.id)
+      getAvailableSlots(null, null, dateStr, booking.service?.id)
         .then((res) => {
           setSlots(res.data || []);
         })
@@ -91,7 +94,7 @@ const SelectDateTimeStep = () => {
           setSlots([]);
         });
     }
-  }, [booking.provider, booking.service?.id, selectedDate]);
+  }, [booking.provider, booking.resource, booking.service?.id, selectedDate]);
 
 
   // Calendar helpers
@@ -154,29 +157,47 @@ const SelectDateTimeStep = () => {
       const dateStr = selectedDate.toISOString().split('T')[0];
 
       let providerId = booking.provider?.id;
+      let resourceId = booking.resource?.id;
 
-      // If ANY provider, fetch first available provider to generate slots for
-      if (!providerId || booking.provider === 'ANY') {
-        const providersRes = await getProviders(booking.service.id);
-        if (providersRes.data && providersRes.data.length > 0) {
-          providerId = providersRes.data[0].id;
-        } else {
-          toast.error("No providers found for this service");
-          return;
+      // Handle Resources
+      if (booking.service.resourceType) {
+        if (!resourceId || booking.resource === 'ANY') {
+          const res = await getResources(booking.service.resourceType);
+          if (res.data?.resources?.length > 0) {
+            resourceId = res.data.resources[0].id;
+          } else {
+            toast.error("No resources found for this service category");
+            return;
+          }
+        }
+      } else {
+        // Handle Providers
+        if (!providerId || booking.provider === 'ANY') {
+          const providersRes = await getProviders(booking.service.id);
+          if (providersRes.data && providersRes.data.length > 0) {
+            providerId = providersRes.data[0].id;
+          } else {
+            toast.error("No specialists found for this service");
+            return;
+          }
         }
       }
 
       await generateSlots({
-        providerId: providerId,
+        providerId,
+        resourceId,
         serviceId: booking.service.id,
         date: dateStr
       });
       toast.success("Test slots generated!");
 
       // Refresh slots
-      // If ANY, pass null as providerId (handled by service)
-      const fetchProviderId = booking.provider === 'ANY' ? null : providerId;
-      const res = await getAvailableSlots(fetchProviderId, dateStr, booking.service.id);
+      const res = await getAvailableSlots(
+        booking.provider === 'ANY' ? null : providerId,
+        booking.resource === 'ANY' ? null : resourceId,
+        dateStr,
+        booking.service.id
+      );
       setSlots(res.data || []);
     } catch (err) {
       toast.error("Failed to generate slots");

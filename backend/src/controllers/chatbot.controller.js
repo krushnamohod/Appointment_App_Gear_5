@@ -35,7 +35,8 @@ async function getServicesContext() {
             duration: true,
             price: true,
             image: true,
-            isPublished: true
+            isPublished: true,
+            resourceType: true
         }
     });
 
@@ -51,7 +52,16 @@ async function getServicesContext() {
         }
     });
 
-    return { services, providers };
+    const resources = await prisma.resource.findMany({
+        select: {
+            id: true,
+            name: true,
+            type: true,
+            capacity: true
+        }
+    });
+
+    return { services, providers, resources };
 }
 
 /**
@@ -71,8 +81,8 @@ export async function handleChatMessage(req, res, next) {
         const history = getConversation(userId);
 
         // Fetch services context
-        const { services, providers } = await getServicesContext();
-        const systemPrompt = buildSystemPrompt(services, providers);
+        const { services, providers, resources } = await getServicesContext();
+        const systemPrompt = buildSystemPrompt(services, providers, resources);
 
         // Detect intent for potential quick actions
         const intent = detectIntent(message);

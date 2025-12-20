@@ -1,7 +1,7 @@
 import prisma from "../../prisma/client.js";
 
 /**
- * Auto-assign best provider for a service on a given date
+ * Auto-assign best provider or resource for a service on a given date
  */
 export async function autoAssignProvider({ serviceId, date }) {
   const startOfDay = new Date(date);
@@ -10,50 +10,81 @@ export async function autoAssignProvider({ serviceId, date }) {
   const endOfDay = new Date(date);
   endOfDay.setHours(23, 59, 59, 999);
 
-  // 1️⃣ Get providers for service
-  const providers = await prisma.provider.findMany({
-    where: { serviceId },
+  // 1️⃣ Get Service info
+  const service = await prisma.service.findUnique({
+    where: { id: serviceId },
+    select: { resourceType: true }
   });
 
-  if (!providers.length) return null;
+  if (!service) return null;
 
-  const providerScores = [];
+  let items = [];
+  let itemType = 'provider';
 
-  for (const provider of providers) {
-    // 2️⃣ Get available slots for provider
+  if (service.resourceType) {
+    items = await prisma.resource.findMany({
+      where: { type: service.resourceType }
+    });
+    itemType = 'resource';
+  } else {
+    items = await prisma.provider.findMany({
+      where: { serviceId },
+    });
+  }
+
+  if (!items.length) return null;
+
+  const itemScores = [];
+
+  for (const item of items) {
+    const where = {
+      startTime: { gte: startOfDay, lte: endOfDay },
+      bookedCount: { lt: prisma.slot.fields.capacity },
+    };
+
+    if (itemType === 'resource') {
+      where.resourceId = item.id;
+    } else {
+      where.providerId = item.id;
+    }
+
+    // 2️⃣ Get available slots for item
     const slots = await prisma.slot.findMany({
-      where: {
-        providerId: provider.id,
-        startTime: { gte: startOfDay, lte: endOfDay },
-        bookedCount: { lt: prisma.slot.fields.capacity },
-      },
+      where,
       orderBy: { startTime: "asc" },
     });
 
     if (!slots.length) continue;
 
+    const bookingWhere = {
+      slot: {
+        startTime: { gte: startOfDay, lte: endOfDay },
+      }
+    };
+
+    if (itemType === 'resource') {
+      bookingWhere.slot.resourceId = item.id;
+    } else {
+      bookingWhere.slot.providerId = item.id;
+    }
+
     // 3️⃣ Count bookings for load
     const bookingsCount = await prisma.booking.count({
-      where: {
-        slot: {
-          providerId: provider.id,
-          startTime: { gte: startOfDay, lte: endOfDay },
-        },
-      },
+      where: bookingWhere,
     });
 
-    providerScores.push({
-      provider,
+    itemScores.push({
+      item,
       slots,
       bookingsCount,
       earliestSlot: slots[0],
     });
   }
 
-  if (!providerScores.length) return null;
+  if (!itemScores.length) return null;
 
-  // 4️⃣ Sort providers
-  providerScores.sort((a, b) => {
+  // 4️⃣ Sort items
+  itemScores.sort((a, b) => {
     if (a.bookingsCount !== b.bookingsCount) {
       return a.bookingsCount - b.bookingsCount; // least load first
     }
@@ -63,9 +94,9 @@ export async function autoAssignProvider({ serviceId, date }) {
     );
   });
 
-  // Best provider + slot
+  // Best item + slot
   return {
-    provider: providerScores[0].provider,
-    slot: providerScores[0].earliestSlot,
+    [itemType]: itemScores[0].item,
+    slot: itemScores[0].earliestSlot,
   };
 }
