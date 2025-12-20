@@ -25,9 +25,22 @@ export async function listServices(req, res) {
       }
     });
 
+    // Fetch all resources to map them by type
+    const allResources = await prisma.resource.findMany({
+      select: { name: true, type: true }
+    });
+
     const formattedServices = services.map(service => {
       const upcomingMeetings = service.slots.reduce((acc, slot) => acc + slot.bookings.length, 0);
-      const resources = service.providers.map(p => p.name);
+
+      // Combine provider names and matching resource names
+      const providerNames = service.providers.map(p => p.name);
+      const matchingResourceNames = allResources
+        .filter(r => r.type === service.resourceType)
+        .map(r => r.name);
+
+      const entities = [...new Set([...providerNames, ...matchingResourceNames])];
+
       return {
         id: service.id,
         name: service.name,
@@ -37,7 +50,7 @@ export async function listServices(req, res) {
         resourceType: service.resourceType,
         image: service.image,
         isPublished: service.isPublished,
-        resources,
+        resources: entities,
         upcomingMeetings
       };
     });

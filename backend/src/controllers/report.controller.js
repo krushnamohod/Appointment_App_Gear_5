@@ -86,6 +86,11 @@ export async function getDashboardStats(req, res, next) {
                             select: {
                                 name: true
                             }
+                        },
+                        resource: {
+                            select: {
+                                name: true
+                            }
                         }
                     }
                 }
@@ -100,7 +105,7 @@ export async function getDashboardStats(req, res, next) {
             phone: "",
             date: b.slot?.startTime ? new Date(b.slot.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : new Date(b.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
             time: b.slot?.startTime ? new Date(b.slot.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : "",
-            resource: b.slot?.provider?.name || null,
+            resource: b.slot?.resource?.name || b.slot?.provider?.name || null,
             service: b.slot?.service?.name || "",
             status: b.status?.toLowerCase() || "pending"
         }));

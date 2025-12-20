@@ -373,17 +373,16 @@ const SelectDateTimeStep = () => {
                 </div>
               </div>
               <p className="text-xs text-ink/40 mt-1 text-right">
-                Just like according to manage capacity rules
+                Number of people according to capacity rules
               </p>
             </div>
           )}
         </div>
       </div>
 
-      {/* Introduction Message */}
       <div className="text-center py-4 border-t border-ink/10 mb-4">
         <p className="text-ink/60 italic text-sm">
-          Schedule your visit today and experience expert dental care brought right to your doorstep.
+          {booking.service?.introductionMessage || "Select a convenient date and time for your visit."}
         </p>
       </div>
 
