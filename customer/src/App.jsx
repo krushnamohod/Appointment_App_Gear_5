@@ -9,6 +9,7 @@ import OTPVerification from './components/auth/OTPVerification';
 import ForgotPassword from './components/auth/ForgotPassword';
 import HomePage from './components/home/HomePage';
 import BookingFlow from './components/booking/BookingFlow';
+import ProfilePage from './components/profile/ProfilePage';
 
 
 function App() {
@@ -35,6 +36,15 @@ function App() {
           path="/"
           element={isAuthenticated ? <HomePage /> : <Navigate to="/login" />}
         />
+
+        {/* moved inside Routes */}
+        <Route
+          path="/profile"
+          element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" />}
+        />
+
+        {/* optional: 404 fallback */}
+        <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
       </Routes>
     </BrowserRouter>
   );
