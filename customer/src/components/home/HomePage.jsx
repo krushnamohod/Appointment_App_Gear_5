@@ -1,7 +1,7 @@
-import { Calendar, Clock, Filter, Search, Users, Plus } from 'lucide-react';
+import { Calendar, Clock, Filter, Plus, Search, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { getServices } from '../../services/appointmentService';
 import { useBookingStore } from '../../context/BookingContext';
+import { getServices } from '../../services/appointmentService';
 
 /**
  * @intent Paper Planner styled homepage with service cards and search
@@ -77,7 +77,7 @@ From luxury badminton courts to dental care, healthcare to babysitting. Experien
             <div className="hidden lg:block relative">
               <div className="w-full aspect-video rounded-3xl overflow-hidden shadow-2xl rotate-3 hover:rotate-0 transition-transform duration-700 bg-gray-200 border-8 border-white">
                 <img
-                  src="/court_booking_banner_1766267957430.png"
+                  src="/landing_banner.png"
                   alt="Premium Sports Court"
                   className="w-full h-full object-cover scale-110 hover:scale-100 transition-transform duration-700"
                 />
