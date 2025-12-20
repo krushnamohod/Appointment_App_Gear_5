@@ -2,7 +2,11 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './context/AuthContext';
 
-const LoginPage = () => <div>Login</div>;
+import LoginPage from './components/auth/LoginPage';
+import SignupPage from './components/auth/SignupPage';
+import OTPVerification from './components/auth/OTPVerification';
+import ForgotPassword from './components/auth/ForgotPassword';
+
 const HomePage = () => <div>Home</div>;
 
 function App() {
@@ -10,17 +14,20 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Toaster position="top-right" />
+      <Toaster />
       <Routes>
         <Route
           path="/login"
           element={isAuthenticated ? <Navigate to="/" /> : <LoginPage />}
         />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/verify-otp" element={<OTPVerification />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+
         <Route
           path="/"
           element={isAuthenticated ? <HomePage /> : <Navigate to="/login" />}
         />
-        <Route path="*" element={<div>404 Not Found</div>} />
       </Routes>
     </BrowserRouter>
   );
