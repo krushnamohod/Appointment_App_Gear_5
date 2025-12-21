@@ -3,15 +3,16 @@ import { TopNavBar } from "@/components/TopNavBar";
 import "@/index.css";
 import { useAdminAuthStore } from "@/store/authStore";
 import { AppointmentsModule } from "@/views/AppointmentsModule";
+import { DiscountsView } from "@/views/DiscountsView";
 import { HelpCenterView } from "@/views/HelpCenterView";
 import LoginPage from "@/views/LoginPage";
 import { ProviderManagement } from "@/views/ProviderManagement";
 import { ReportingView } from "@/views/ReportingView";
-import { ServiceManagement } from "@/views/ServiceManagement";
 import { ResourcesModule } from "@/views/ResourcesModule";
+import { ServiceManagement } from "@/views/ServiceManagement";
 import { UserSettingsView } from "@/views/SettingsViews";
 import { UserRoleManagement } from "@/views/UserRoleManagement";
-import { BarChart3, Box, Calendar, HelpCircle, LayoutGrid, LogOut, Settings, User, Users } from "lucide-react";
+import { BarChart3, Box, Calendar, HelpCircle, LayoutGrid, LogOut, Percent, Settings, User, Users } from "lucide-react";
 
 /**
  * @intent Main app component with auth routing and sidebar layout
@@ -50,6 +51,12 @@ function App() {
             title: "Role Management",
             Icon: Users,
             Content: UserRoleManagement,
+        }] : []),
+        // Discounts - Admin only
+        ...(role === "ADMIN" ? [{
+            title: "Discounts",
+            Icon: Percent,
+            Content: DiscountsView,
         }] : []),
         {
             title: "Settings",

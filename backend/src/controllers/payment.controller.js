@@ -4,18 +4,40 @@ import { checkPhonePeStatus, initiatePhonePePayment } from "../services/paymentS
 
 export async function initiatePayment(req, res, next) {
     try {
-        const { serviceId, slotId, date, capacity = 1, answers = {} } = req.body;
+        const { serviceId, slotId, date, capacity = 1, answers = {}, discountCode } = req.body;
         const userId = req.user.id;
 
         // 1. Fetch Service to get price
         const service = await prisma.service.findUnique({ where: { id: serviceId } });
         if (!service) return res.status(404).json({ message: "Service not found" });
 
-        const totalAmount = service.price * capacity;
+        let totalAmount = service.price * capacity;
+        let appliedDiscount = null;
+
+        // 2. Validate and apply discount if provided
+        if (discountCode) {
+            const discount = await prisma.discount.findUnique({
+                where: { code: discountCode.toUpperCase() }
+            });
+
+            if (discount && discount.isActive) {
+                const now = new Date();
+                if (now >= discount.validFrom && now <= discount.validUntil) {
+                    if (!discount.maxUses || discount.usedCount < discount.maxUses) {
+                        if (!discount.serviceId || discount.serviceId === serviceId) {
+                            // Apply discount
+                            const discountAmount = Math.round(totalAmount * discount.percentage / 100);
+                            totalAmount = totalAmount - discountAmount;
+                            appliedDiscount = discount.code;
+                        }
+                    }
+                }
+            }
+        }
+
         if (totalAmount <= 0) return res.status(400).json({ message: "Invalid amount for payment" });
 
-        // 2. Create a PENDING Booking
-        // In a real app, you might want to lock the slot or check availability first
+        // 3. Create a PENDING Booking
         const booking = await prisma.booking.create({
             data: {
                 userId,
@@ -27,7 +49,7 @@ export async function initiatePayment(req, res, next) {
             }
         });
 
-        // 3. Create a PENDING Transaction
+        // 4. Create a PENDING Transaction
         const merchantTransactionId = `TXN_${uuidv4().replace(/-/g, '').slice(0, 15)}`;
         const transaction = await prisma.transaction.create({
             data: {

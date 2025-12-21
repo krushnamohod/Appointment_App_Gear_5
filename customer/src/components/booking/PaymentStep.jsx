@@ -1,4 +1,4 @@
-import { ArrowLeft, CreditCard, Loader2, Shield, Smartphone } from 'lucide-react';
+import { ArrowLeft, Check, CreditCard, Loader2, Shield, Smartphone, Tag, X } from 'lucide-react';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useBookingStore } from '../../context/BookingContext';
@@ -6,11 +6,16 @@ import { useBookingStore } from '../../context/BookingContext';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 /**
- * @intent Payment step with PhonePe integration
+ * @intent Payment step with PhonePe integration and coupon support
  */
 const PaymentStep = () => {
     const { booking, setStep } = useBookingStore();
     const [loading, setLoading] = useState(false);
+
+    // Coupon state
+    const [couponCode, setCouponCode] = useState('');
+    const [couponLoading, setCouponLoading] = useState(false);
+    const [appliedCoupon, setAppliedCoupon] = useState(null);
 
     // Get token directly from localStorage
     const token = localStorage.getItem('token');
@@ -18,8 +23,48 @@ const PaymentStep = () => {
     const price = booking.service?.price || 0;
     const capacity = booking.numberOfPeople || 1;
     const subtotal = price * capacity;
-    const taxes = Math.round(subtotal * 0.18); // 18% GST
-    const total = subtotal + taxes;
+
+    // Calculate discount
+    const discountAmount = appliedCoupon
+        ? Math.round(subtotal * appliedCoupon.percentage / 100)
+        : 0;
+    const afterDiscount = subtotal - discountAmount;
+    const taxes = Math.round(afterDiscount * 0.18); // 18% GST
+    const total = afterDiscount + taxes;
+
+    const handleApplyCoupon = async () => {
+        if (!couponCode.trim()) return;
+
+        setCouponLoading(true);
+        try {
+            const response = await fetch(`${API_URL}/discounts/validate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    code: couponCode,
+                    serviceId: booking.service?.id
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.valid) {
+                setAppliedCoupon(data);
+                toast.success(`${data.percentage}% discount applied!`);
+            } else {
+                toast.error(data.message || 'Invalid coupon');
+            }
+        } catch (error) {
+            toast.error('Failed to validate coupon');
+        } finally {
+            setCouponLoading(false);
+        }
+    };
+
+    const handleRemoveCoupon = () => {
+        setAppliedCoupon(null);
+        setCouponCode('');
+    };
 
     const handlePhonePePay = async () => {
         if (!booking.slotId) {
@@ -45,7 +90,8 @@ const PaymentStep = () => {
                     serviceId: booking.service?.id,
                     slotId: booking.slotId,
                     capacity: booking.numberOfPeople || 1,
-                    answers: booking.answers || {}
+                    answers: booking.answers || {},
+                    discountCode: appliedCoupon?.code || null
                 })
             });
 
@@ -75,6 +121,47 @@ const PaymentStep = () => {
                 <p className="text-ink/60 mt-1">Secure payment via PhonePe</p>
             </div>
 
+            {/* Coupon Code Section */}
+            <div className="card-planner p-4">
+                <div className="flex items-center gap-2 mb-3">
+                    <Tag className="text-terracotta" size={18} />
+                    <h3 className="font-medium text-ink">Have a coupon?</h3>
+                </div>
+
+                {appliedCoupon ? (
+                    <div className="flex items-center justify-between bg-sage/10 p-3 rounded-planner border border-sage/30">
+                        <div className="flex items-center gap-2">
+                            <Check className="text-sage-dark" size={18} />
+                            <span className="font-medium text-sage-dark">{appliedCoupon.code}</span>
+                            <span className="text-sm text-sage-dark">({appliedCoupon.percentage}% off)</span>
+                        </div>
+                        <button
+                            onClick={handleRemoveCoupon}
+                            className="text-ink/50 hover:text-error transition-colors"
+                        >
+                            <X size={18} />
+                        </button>
+                    </div>
+                ) : (
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            value={couponCode}
+                            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                            placeholder="Enter coupon code"
+                            className="input-planner flex-1"
+                        />
+                        <button
+                            onClick={handleApplyCoupon}
+                            disabled={couponLoading || !couponCode.trim()}
+                            className="btn-secondary px-4"
+                        >
+                            {couponLoading ? <Loader2 className="animate-spin" size={18} /> : 'Apply'}
+                        </button>
+                    </div>
+                )}
+            </div>
+
             {/* Order Summary Card */}
             <div className="card-planner p-6">
                 <h3 className="font-serif text-lg text-ink mb-4">Order Summary</h3>
@@ -101,6 +188,14 @@ const PaymentStep = () => {
                         <span>Subtotal</span>
                         <span>₹{subtotal}</span>
                     </div>
+
+                    {/* Discount */}
+                    {appliedCoupon && (
+                        <div className="flex justify-between text-sage-dark">
+                            <span>Discount ({appliedCoupon.percentage}%)</span>
+                            <span>-₹{discountAmount}</span>
+                        </div>
+                    )}
 
                     {/* Taxes */}
                     <div className="flex justify-between text-ink/70">

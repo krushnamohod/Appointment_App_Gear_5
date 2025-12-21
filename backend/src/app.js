@@ -41,6 +41,7 @@ app.use((req, res, next) => {
 
 import authRoutes from "./routes/auth.route.js";
 import bookingRoutes from "./routes/booking.route.js";
+import discountRoutes from "./routes/discount.route.js";
 import paymentRoutes from "./routes/payment.route.js";
 import providerRoutes from "./routes/provider.route.js";
 import reportRoutes from "./routes/report.route.js";
@@ -64,6 +65,7 @@ app.use("/api/reports", reportRoutes);
 app.use("/api/resources", resourceRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/discounts", discountRoutes);
 
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 
