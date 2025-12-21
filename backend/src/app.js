@@ -41,7 +41,9 @@ app.use((req, res, next) => {
 
 import authRoutes from "./routes/auth.route.js";
 import bookingRoutes from "./routes/booking.route.js";
+import discountRoutes from "./routes/discount.route.js";
 import paymentRoutes from "./routes/payment.route.js";
+
 import providerRoutes from "./routes/provider.route.js";
 import reportRoutes from "./routes/report.route.js";
 import resourceRoutes from "./routes/resource.route.js";
@@ -56,6 +58,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/services", serviceRoutes);
+
 app.use("/api/providers", providerRoutes);
 app.use("/api/slots", slotRoutes);
 app.use("/api/bookings", bookingRoutes);
@@ -64,6 +67,7 @@ app.use("/api/reports", reportRoutes);
 app.use("/api/resources", resourceRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/discounts", discountRoutes);
 
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 
