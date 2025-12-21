@@ -356,7 +356,7 @@ const SyncraLoginPage = () => {
                 {loading ? "Verifying..." : "Verify OTP"}
             </button>
 
-            <p className="text-xs text-gray-500 text-center">Hardcoded OTP: <span className="font-mono font-medium">123456</span></p>
+            {/* <p className="text-xs text-gray-500 text-center">Hardcoded OTP: <span className="font-mono font-medium">123456</span></p> */}
         </form>
     );
 

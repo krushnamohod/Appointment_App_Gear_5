@@ -2,6 +2,10 @@
 
 A full-stack appointment booking application with an admin dashboard, customer portal, and AI-powered chatbot assistant. Built for hackathon with modern technologies and a beautiful UI.
 
+## 🎬 Demo Video
+
+[![Watch Demo Video](https://img.shields.io/badge/YouTube-Watch%20Demo-red?style=for-the-badge&logo=youtube)](https://youtu.be/L9kw-WZggKA)
+
 ![Appointment App](./Appointment%20app%20-The%20perfect%20booking%20system%20-%2024%20hours.png)
 
 ## 🏗️ Architecture
