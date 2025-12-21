@@ -6,46 +6,81 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Starting seed...');
 
-  // 1. Create Admin User
-  const adminPassword = await bcrypt.hash('Admin@123', 10);
-  const admin = await prisma.user.upsert({
+  // 1. Create Admin & Test Users
+  const password = await bcrypt.hash('Test@123', 10);
+
+  await prisma.user.upsert({
     where: { email: 'admin@admin.com' },
-    update: {},
-    create: {
-      email: 'admin@admin.com',
-      name: 'Admin User',
-      password: adminPassword,
-      role: 'ADMIN',
-    },
+    update: { password },
+    create: { email: 'admin@admin.com', name: 'Admin User', password, role: 'ADMIN' },
   });
-  console.log(`Created admin: ${admin.email}`);
 
-  // 2. Create Organiser User
-  const orgPassword = await bcrypt.hash('Org@123', 10);
-  const org = await prisma.user.upsert({
-    where: { email: 'org@org.com' },
-    update: {},
-    create: {
-      email: 'org@org.com',
-      name: 'Organiser User',
-      password: orgPassword,
-      role: 'ORGANISER',
-    },
+  await prisma.user.upsert({
+    where: { email: 'test@test.com' },
+    update: { password },
+    create: { email: 'test@test.com', name: 'Test Customer', password, role: 'CUSTOMER' },
   });
-  console.log(`Created organiser: ${org.email}`);
 
-  // 3. Create Default Service
-  const service = await prisma.service.create({
+  // 2. Create Services
+  const specialistService = await prisma.service.create({
     data: {
       name: 'General Consultation',
       duration: 30,
+      price: 50,
       capacity: 1,
       isPublished: true,
+      introductionMessage: 'Welcome to our clinic! Please select a specialist.',
     }
   });
-  console.log(`Created service: ${service.name}`);
 
-  console.log('✅ Seed completed!');
+  const courtService = await prisma.service.create({
+    data: {
+      name: 'Badminton Court',
+      duration: 60,
+      price: 20,
+      capacity: 4,
+      resourceType: 'COURT',
+      isPublished: true,
+      introductionMessage: 'Book your court for a high-energy session!',
+    }
+  });
+
+  // 3. Create a Specialist (Provider)
+  const provider = await prisma.provider.create({
+    data: {
+      name: 'Dr. Jane Smith',
+      serviceId: specialistService.id,
+      workingHours: {
+        weekly: {
+          monday: { enabled: true, slots: [{ start: '09:00', end: '17:00' }] },
+          tuesday: { enabled: true, slots: [{ start: '09:00', end: '17:00' }] },
+          wednesday: { enabled: true, slots: [{ start: '09:00', end: '17:00' }] },
+          thursday: { enabled: true, slots: [{ start: '09:00', end: '17:00' }] },
+          friday: { enabled: true, slots: [{ start: '09:00', end: '17:00' }] },
+        }
+      }
+    }
+  });
+
+  // 4. Create a Resource
+  const court = await prisma.resource.create({
+    data: {
+      name: 'Badminton Court 1',
+      type: 'COURT',
+      capacity: 4,
+      workingHours: {
+        monday: { enabled: true, slots: [{ start: '08:00', end: '22:00' }] },
+        tuesday: { enabled: true, slots: [{ start: '08:00', end: '22:00' }] },
+        wednesday: { enabled: true, slots: [{ start: '08:00', end: '22:00' }] },
+        thursday: { enabled: true, slots: [{ start: '08:00', end: '22:00' }] },
+        friday: { enabled: true, slots: [{ start: '08:00', end: '22:00' }] },
+        saturday: { enabled: true, slots: [{ start: '10:00', end: '20:00' }] },
+        sunday: { enabled: true, slots: [{ start: '10:00', end: '20:00' }] },
+      }
+    }
+  });
+
+  console.log('✅ Comprehensive seed completed!');
 }
 
 main()

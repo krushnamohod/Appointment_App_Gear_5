@@ -16,6 +16,7 @@ import ProfilePage from './components/profile/ProfilePage';
 
 import { useEffect } from 'react';
 import { getMe } from './services/authService';
+import { connectSocket } from './services/socket';
 
 /**
  * @intent Main app router with auth-based redirects and navigation
@@ -24,11 +25,18 @@ function App() {
   const { isAuthenticated, setUser, logout } = useAuthStore();
 
   useEffect(() => {
+    // 🔌 Connect socket for all users (including anonymous)
+    const socket = connectSocket();
+
     if (isAuthenticated) {
       getMe()
         .then(res => setUser(res.data))
         .catch(() => logout());
     }
+
+    return () => {
+      // socket.disconnect() is handled in the service if needed
+    };
   }, [isAuthenticated, setUser, logout]);
 
   return (

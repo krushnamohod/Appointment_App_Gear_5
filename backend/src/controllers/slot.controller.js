@@ -78,54 +78,114 @@ export async function generateSlotsForDate(req, res) {
   });
 }
 
-export async function getSlots(req, res) {
-  const { date, serviceId, providerId, resourceId } = req.query;
+export async function getSlots(req, res, next) {
+  try {
+    const { date, serviceId, providerId, resourceId } = req.query;
 
-  if (!date) {
-    return res.status(400).json({ message: "Date is required" });
+    if (!date) return res.status(400).json({ message: "Date is required" });
+
+    const where = {
+      startTime: {
+        gte: new Date(`${date}T00:00:00.000Z`),
+        lt: new Date(`${date}T23:59:59.999Z`),
+      },
+    };
+
+    if (serviceId) where.serviceId = serviceId;
+    if (providerId) where.providerId = providerId;
+    if (resourceId) where.resourceId = resourceId;
+
+    let slots = await prisma.slot.findMany({
+      where,
+      include: {
+        provider: { select: { id: true, name: true } },
+        resource: { select: { id: true, name: true } }
+      },
+      orderBy: { startTime: 'asc' }
+    });
+
+    // 🔄 AUTO-GENERATE if slots are empty and we have enough info
+    if (slots.length === 0 && serviceId && (providerId || resourceId)) {
+      console.log(`✨ Auto-generating slots for ${date}...`);
+      await autoGenerateSlots({ providerId, resourceId, serviceId, date });
+
+      // Re-fetch after generation
+      slots = await prisma.slot.findMany({
+        where,
+        include: {
+          provider: { select: { id: true, name: true } },
+          resource: { select: { id: true, name: true } }
+        },
+        orderBy: { startTime: 'asc' }
+      });
+    }
+
+    const availableSlots = slots.map(slot => ({
+      id: slot.id,
+      time: new Date(slot.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      startTime: slot.startTime,
+      available: slot.bookedCount < slot.capacity,
+      provider: slot.provider,
+      resource: slot.resource,
+      bookedCount: slot.bookedCount,
+      capacity: slot.capacity
+    }));
+
+    res.json(availableSlots);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Internal helper for auto-generation (logic from generateSlotsForDate)
+ */
+async function autoGenerateSlots({ providerId, resourceId, serviceId, date }) {
+  const service = await prisma.service.findUnique({ where: { id: serviceId } });
+  if (!service) return;
+
+  let config;
+  if (providerId) {
+    const provider = await prisma.provider.findUnique({ where: { id: providerId } });
+    config = provider?.workingHours?.weekly;
+  } else {
+    const resource = await prisma.resource.findUnique({ where: { id: resourceId } });
+    config = resource?.workingHours;
   }
 
-  const where = {
-    startTime: {
-      gte: new Date(`${date}T00:00:00.000Z`),
-      lt: new Date(`${date}T23:59:59.999Z`),
-    },
-  };
+  const day = new Date(date).toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
+  const dayConfig = config?.[day];
 
-  if (serviceId) where.serviceId = serviceId;
-  if (providerId) where.providerId = providerId;
-  if (resourceId) where.resourceId = resourceId;
+  if (!dayConfig || !dayConfig.enabled) return;
 
-  const slots = await prisma.slot.findMany({
-    where,
-    include: {
-      provider: {
-        select: {
-          id: true,
-          name: true,
-        }
-      },
-      resource: {
-        select: {
-          id: true,
-          name: true,
-        }
-      }
-    },
-    orderBy: {
-      startTime: 'asc'
-    }
+  const generated = generateSlots({
+    date,
+    shifts: dayConfig.slots,
+    duration: service.duration,
   });
 
-  // Check availability logic (bookedCount < capacity)
-  const availableSlots = slots.map(slot => ({
-    id: slot.id,
-    time: new Date(slot.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    startTime: slot.startTime,
-    available: slot.bookedCount < slot.capacity,
-    provider: slot.provider,
-    resource: slot.resource
-  }));
+  for (const slot of generated) {
+    // 🔍 Check existence manually to avoid relying on updated Prisma Client indexes
+    const exists = await prisma.slot.findFirst({
+      where: {
+        providerId: providerId || null,
+        resourceId: resourceId || null,
+        serviceId,
+        startTime: slot.startTime,
+      }
+    });
 
-  res.json(availableSlots);
+    if (!exists) {
+      await prisma.slot.create({
+        data: {
+          providerId: providerId || null,
+          resourceId: resourceId || null,
+          serviceId,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+          capacity: service.capacity,
+        },
+      });
+    }
+  }
 }

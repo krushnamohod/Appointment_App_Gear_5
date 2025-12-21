@@ -22,26 +22,38 @@ async function main() {
         },
     });
 
+    const workingHours = {
+        monday: { enabled: true, slots: [{ start: '08:00', end: '22:00' }] },
+        tuesday: { enabled: true, slots: [{ start: '08:00', end: '22:00' }] },
+        wednesday: { enabled: true, slots: [{ start: '08:00', end: '22:00' }] },
+        thursday: { enabled: true, slots: [{ start: '08:00', end: '22:00' }] },
+        friday: { enabled: true, slots: [{ start: '08:00', end: '22:00' }] },
+        saturday: { enabled: true, slots: [{ start: '10:00', end: '20:00' }] },
+        sunday: { enabled: true, slots: [{ start: '10:00', end: '20:00' }] },
+    };
+
     // 2. Create some "COURT" resources
     const court1 = await prisma.resource.upsert({
         where: { id: 'court-1' },
-        update: {},
+        update: { workingHours },
         create: {
             id: 'court-1',
             name: 'Court A (Premium)',
             type: 'COURT',
             capacity: 4,
+            workingHours
         }
     });
 
     const court2 = await prisma.resource.upsert({
         where: { id: 'court-2' },
-        update: {},
+        update: { workingHours },
         create: {
             id: 'court-2',
             name: 'Court B (Standard)',
             type: 'COURT',
             capacity: 4,
+            workingHours
         }
     });
 

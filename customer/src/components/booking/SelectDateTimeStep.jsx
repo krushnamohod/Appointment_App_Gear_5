@@ -1,9 +1,8 @@
-import { ChevronLeft, ChevronRight, Clock, Minus, Plus, Users, Wifi, WifiOff, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, Minus, Plus, Users, Wifi, WifiOff } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import { useBookingStore } from '../../context/BookingContext';
-import { getAvailableSlots, generateSlots, getProviders } from '../../services/appointmentService';
+import { getAvailableSlots } from '../../services/appointmentService';
 import { subscribeToSlots, unsubscribeFromSlots, onSlotUpdate, connectSocket } from '../../services/socket';
-import toast from 'react-hot-toast';
 
 /**
  * @intent Paper Planner styled date/time selection with 2-column layout
@@ -42,19 +41,44 @@ const SelectDateTimeStep = () => {
     }
   }, [selectedSlotId]);
 
+  // Fetch slots when date/provider/resource changes
+  const fetchSlots = useCallback(() => {
+    const dateStr = selectedDate.toISOString().split('T')[0];
+
+    if (booking.resource?.id) {
+      getAvailableSlots(null, booking.resource.id, dateStr, booking.service?.id)
+        .then((res) => setSlots(res.data || []));
+    } else if (booking.provider?.id) {
+      getAvailableSlots(booking.provider.id, null, dateStr, booking.service?.id)
+        .then((res) => setSlots(res.data || []));
+    } else if (booking.provider === 'ANY' || booking.resource === 'ANY') {
+      getAvailableSlots(null, null, dateStr, booking.service?.id)
+        .then((res) => setSlots(res.data || []))
+        .catch(() => setSlots([]));
+    }
+  }, [booking.provider, booking.resource, booking.service?.id, selectedDate]);
+
   // Connect to socket and subscribe to updates
   useEffect(() => {
     const socket = connectSocket();
     setIsConnected(socket?.connected || false);
 
-    socket?.on('connect', () => setIsConnected(true));
-    socket?.on('disconnect', () => setIsConnected(false));
+    const handleConnect = () => {
+      setIsConnected(true);
+      // 🔥 Re-fetch slots on reconnection to ensure we have latest data
+      fetchSlots();
+    };
+
+    const handleDisconnect = () => setIsConnected(false);
+
+    socket?.on('connect', handleConnect);
+    socket?.on('disconnect', handleDisconnect);
 
     return () => {
-      socket?.off('connect');
-      socket?.off('disconnect');
+      socket?.off('connect', handleConnect);
+      socket?.off('disconnect', handleDisconnect);
     };
-  }, []);
+  }, [fetchSlots]);
 
   // Subscribe to slot updates when date changes
   useEffect(() => {
@@ -73,28 +97,9 @@ const SelectDateTimeStep = () => {
     };
   }, [selectedDate, booking.service?.id, handleSlotUpdate]);
 
-  // Fetch slots when date/provider/resource changes
   useEffect(() => {
-    const dateStr = selectedDate.toISOString().split('T')[0];
-
-    if (booking.resource?.id) {
-      getAvailableSlots(null, booking.resource.id, dateStr, booking.service?.id)
-        .then((res) => setSlots(res.data || []));
-    } else if (booking.provider?.id) {
-      getAvailableSlots(booking.provider.id, null, dateStr, booking.service?.id)
-        .then((res) => setSlots(res.data || []));
-    } else if (booking.provider === 'ANY' || booking.resource === 'ANY') {
-      // Fetch all available slots for the service
-      getAvailableSlots(null, null, dateStr, booking.service?.id)
-        .then((res) => {
-          setSlots(res.data || []);
-        })
-        .catch((err) => {
-          console.error("Failed to load slots", err);
-          setSlots([]);
-        });
-    }
-  }, [booking.provider, booking.resource, booking.service?.id, selectedDate]);
+    fetchSlots();
+  }, [fetchSlots]);
 
 
   // Calendar helpers
@@ -119,6 +124,7 @@ const SelectDateTimeStep = () => {
   const isToday = (date) => {
     if (!date) return false;
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     return date.toDateString() === today.toDateString();
   };
 
@@ -149,63 +155,6 @@ const SelectDateTimeStep = () => {
     }
   };
 
-  const handleGenerateSlots = async () => {
-    if (!booking.service?.id) return;
-
-    try {
-      setLoadingValues(true);
-      const dateStr = selectedDate.toISOString().split('T')[0];
-
-      let providerId = booking.provider?.id;
-      let resourceId = booking.resource?.id;
-
-      // Handle Resources
-      if (booking.service.resourceType) {
-        if (!resourceId || booking.resource === 'ANY') {
-          const res = await getResources(booking.service.resourceType);
-          if (res.data?.resources?.length > 0) {
-            resourceId = res.data.resources[0].id;
-          } else {
-            toast.error("No resources found for this service category");
-            return;
-          }
-        }
-      } else {
-        // Handle Providers
-        if (!providerId || booking.provider === 'ANY') {
-          const providersRes = await getProviders(booking.service.id);
-          if (providersRes.data && providersRes.data.length > 0) {
-            providerId = providersRes.data[0].id;
-          } else {
-            toast.error("No specialists found for this service");
-            return;
-          }
-        }
-      }
-
-      await generateSlots({
-        providerId,
-        resourceId,
-        serviceId: booking.service.id,
-        date: dateStr
-      });
-      toast.success("Test slots generated!");
-
-      // Refresh slots
-      const res = await getAvailableSlots(
-        booking.provider === 'ANY' ? null : providerId,
-        booking.resource === 'ANY' ? null : resourceId,
-        dateStr,
-        booking.service.id
-      );
-      setSlots(res.data || []);
-    } catch (err) {
-      toast.error("Failed to generate slots");
-      console.error(err);
-    } finally {
-      setLoadingValues(false);
-    }
-  };
 
   const handleContinue = () => {
     if (selectedTime) {
@@ -302,18 +251,7 @@ const SelectDateTimeStep = () => {
             {slots.length === 0 ? (
               <div className="col-span-2 text-center py-8 text-ink/50 border border-ink/10 rounded-planner flex flex-col items-center gap-3">
                 <Clock className="w-8 h-8 opacity-20" />
-                <span>No slots available</span>
-
-                {(booking.provider?.id || booking.provider === 'ANY') && (
-                  <button
-                    onClick={handleGenerateSlots}
-                    disabled={loadingValues}
-                    className="mt-2 text-xs bg-ink/5 hover:bg-ink/10 text-ink px-3 py-1.5 rounded-full transition-colors flex items-center gap-2"
-                  >
-                    {loadingValues && <Loader2 size={12} className="animate-spin" />}
-                    Generate Test Slots
-                  </button>
-                )}
+                <span>No slots available for this day</span>
               </div>
             ) : (
               slots.map((slot) => (

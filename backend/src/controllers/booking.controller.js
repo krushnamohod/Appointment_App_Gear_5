@@ -13,6 +13,7 @@ export async function createBooking(req, res, next) {
   try {
     const { serviceId, slotId, date, capacity = 1, answers = {} } = req.body;
     const userId = req.user.id;
+    console.log(`📝 Creating booking: user=${userId}, slot=${slotId}, service=${serviceId}, date=${date}`);
 
     let finalSlotId = slotId;
 
@@ -142,6 +143,7 @@ export async function createBooking(req, res, next) {
     }
 
   } catch (error) {
+    console.error("❌ Booking Error:", error.message, error.status);
     // Ensure lock is released on any error
     if (slotToBook?.id) {
       await releaseLock(slotToBook.id, requestId);

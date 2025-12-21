@@ -2,8 +2,8 @@ import { z } from "zod";
 
 export const createBookingSchema = z.object({
     body: z.object({
-        serviceId: z.string().uuid(),
-        slotId: z.string().uuid().optional(), // Optional for auto-assign
+        serviceId: z.string().min(1),
+        slotId: z.string().min(1).optional(), // Optional for auto-assign
         date: z.string().optional(), // Expected format: YYYY-MM-DD
         capacity: z.number().int().min(1).optional(),
         answers: z.record(z.any()).optional(),

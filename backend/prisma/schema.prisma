@@ -20,18 +20,20 @@ enum BookingStatus {
   CONFIRMED
   CANCELLED
   COMPLETED
+  PAYMENT_FAILED
 }
 
 model User {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  password  String
-  avatar    String?
-  role      Role     @default(CUSTOMER)
-  isActive  Boolean  @default(true)
-  bookings  Booking[]
-  createdAt DateTime @default(now())
+  id           String        @id @default(uuid())
+  name         String
+  email        String        @unique
+  password     String
+  avatar       String?
+  role         Role          @default(CUSTOMER)
+  isActive     Boolean       @default(true)
+  bookings     Booking[]
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
 }
 
 model Service {
@@ -89,19 +91,39 @@ model Slot {
   provider    Provider? @relation(fields: [providerId], references: [id])
   resource    Resource? @relation(fields: [resourceId], references: [id])
   bookings    Booking[]
+
+  @@unique([providerId, resourceId, serviceId, startTime])
 }
 
 model Booking {
-  id         String        @id @default(uuid())
-  userId     String
-  slotId     String
-  status     BookingStatus @default(CONFIRMED)
-  capacity   Int           @default(1)
-  answers    Json?
-  totalPrice Int           @default(0)
-  user       User          @relation(fields: [userId], references: [id])
-  slot       Slot          @relation(fields: [slotId], references: [id])
-  createdAt  DateTime      @default(now())
+  id           String        @id @default(uuid())
+  userId       String
+  slotId       String
+  status       BookingStatus @default(CONFIRMED)
+  capacity     Int           @default(1)
+  answers      Json?
+  totalPrice   Int           @default(0)
+  user         User          @relation(fields: [userId], references: [id])
+  slot         Slot          @relation(fields: [slotId], references: [id])
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+}
+
+model Transaction {
+  id                    String   @id @default(uuid())
+  bookingId             String?
+  userId                String
+  amount                Int
+  status                String   @default("PENDING") // PENDING, SUCCESS, FAILED
+  provider              String   @default("PHONEPE")
+  merchantTransactionId String   @unique
+  providerReferenceId   String?
+  paymentMode           String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  booking               Booking? @relation(fields: [bookingId], references: [id])
+  user                  User     @relation(fields: [userId], references: [id])
 }
 
 model Resource {
@@ -117,3 +139,4 @@ model Resource {
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
 }
+鼓
