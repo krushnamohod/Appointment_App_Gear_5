@@ -32,11 +32,13 @@ const Navbar = () => {
                 <div className="flex items-center justify-between h-16">
                     {/* Logo */}
                     <NavLink to="/" className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-terracotta rounded-planner flex items-center justify-center"
-                            style={{ boxShadow: '2px 2px 0px rgba(45, 45, 45, 0.1)' }}>
-                            <Calendar className="text-white" size={20} />
-                        </div>
-                        <span className="font-serif text-xl text-ink hidden sm:block">Planner</span>
+                        <img
+                            src="/logo.jpg"
+                            alt="Syncra Logo"
+                            className="h-10 w-10 rounded-lg object-contain bg-white"
+                            style={{ boxShadow: '2px 2px 0px rgba(45, 45, 45, 0.1)' }}
+                        />
+                        <span className="font-serif text-xl text-ink hidden sm:block">Syncra</span>
                     </NavLink>
 
                     {/* Desktop Navigation */}

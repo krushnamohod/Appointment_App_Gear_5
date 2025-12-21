@@ -3,7 +3,7 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../context/AuthContext';
-import { login, sendOTP, loginWithOTP } from '../../services/authService';
+import { login, loginWithOTP, sendOTP } from '../../services/authService';
 
 /**
  * @intent Paper Planner themed login/signup page with warm, stationery-inspired design
@@ -102,12 +102,12 @@ const LoginPage = () => {
 
           <div className="relative z-10">
             {/* Logo */}
-            <div className="mb-8">
-              <div className="w-16 h-16 bg-terracotta rounded-planner flex items-center justify-center"
-                style={{ boxShadow: '3px 3px 0px rgba(45, 45, 45, 0.15)' }}>
-                <Calendar className="text-white" size={32} />
-              </div>
-            </div>
+            <img
+              src="/logo.jpg"
+              alt="Syncra Logo"
+              className="h-10 w-10 rounded-lg object-contain bg-white"
+              style={{ boxShadow: '2px 2px 0px rgba(45, 45, 45, 0.1)' }}
+            />
 
             {/* Brand */}
             <h1 className="font-serif text-4xl text-ink mb-4">
