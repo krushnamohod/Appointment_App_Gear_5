@@ -66,7 +66,7 @@ const HomePage = () => {
                   }}
                   className="bg-ink text-white px-8 py-4 rounded-full font-bold hover:bg-ink/90 transition-all shadow-xl active:scale-95"
                 >
-                  Reserve
+                  Reserve Space
                 </button>
                 <button
                   onClick={() => openDrawer()}

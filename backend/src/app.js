@@ -51,6 +51,7 @@ import serviceRoutes from "./routes/service.route.js";
 import slotRoutes from "./routes/slot.route.js";
 import uploadRoutes from "./routes/upload.route.js";
 import userRoutes from "./routes/user.route.js";
+import chatbotRoutes from "./routes/chatbot.route.js";
 
 app.get("/", (req, res) => {
   res.send("Appointment Booking Backend Running 🚀 (with Socket.IO)");
@@ -68,6 +69,7 @@ app.use("/api/resources", resourceRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/discounts", discountRoutes);
+app.use("/api/chatbot", chatbotRoutes);
 
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 
