@@ -6,7 +6,7 @@ import api from './api';
  * @returns {Promise} - AI response with suggested actions
  */
 export const sendChatMessage = async (message) => {
-    const response = await api.post('/chat/message', { message });
+    const response = await api.post('/chatbot/message', { message });
     return response.data;
 };
 
@@ -15,7 +15,7 @@ export const sendChatMessage = async (message) => {
  * @returns {Promise}
  */
 export const resetConversation = async () => {
-    const response = await api.post('/chat/reset');
+    const response = await api.post('/chatbot/reset');
     return response.data;
 };
 
@@ -24,7 +24,7 @@ export const resetConversation = async () => {
  * @returns {Promise<string[]>}
  */
 export const getQuickSuggestions = async () => {
-    const response = await api.get('/chat/suggestions');
+    const response = await api.get('/chatbot/suggestions');
     return response.data.suggestions;
 };
 
@@ -33,7 +33,7 @@ export const getQuickSuggestions = async () => {
  * @returns {Promise}
  */
 export const checkChatHealth = async () => {
-    const response = await api.get('/chat/health');
+    const response = await api.get('/chatbot/health');
     return response.data;
 };
 
