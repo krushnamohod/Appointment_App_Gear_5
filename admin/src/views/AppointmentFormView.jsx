@@ -44,10 +44,9 @@ function AppointmentFormView({ appointment, onBack, onReporting, onSettings }) {
         duration: formatDuration(appointment?.duration || 30),
         location: appointment?.venue || "Doctor's Office",
         bookType: appointment?.resourceType ? 'resources' : 'user',
-        selectedUsers: appointment?.resources || ["A1", "A2"],
+        selectedUsers: appointment?.resources || ["A1"],
         availableUsers: [
-            { id: "A1", code: "A1", name: "User 1" },
-            { id: "A2", code: "A2", name: "User 2" },
+            { id: "A1", code: "A1", name: "User 1", email: "user1@example.com" },
         ],
         assignment: "automatically",
         manageCapacity: appointment?.manageCapacity || false,
@@ -116,8 +115,7 @@ function AppointmentFormView({ appointment, onBack, onReporting, onSettings }) {
             bookType: "user",
             selectedUsers: [],
             availableUsers: [
-                { id: "A1", code: "A1", name: "User 1" },
-                { id: "A2", code: "A2", name: "User 2" },
+                { id: "A1", code: "A1", name: "User 1", email: "user1@example.com" },
             ],
             assignment: "automatically",
             manageCapacity: false,

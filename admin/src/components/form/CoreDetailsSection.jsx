@@ -3,6 +3,8 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/RadioGroup";
 import { cn } from "@/lib/utils";
+import { ChevronDown, ChevronUp, Copy, Link, Share2, Users } from "lucide-react";
+import { useState } from "react";
 
 /**
  * @intent Core details section with duration, location, book type, users, assignment, capacity
@@ -11,6 +13,9 @@ import { cn } from "@/lib/utils";
  * @param {function} props.onChange - Change handler
  */
 function CoreDetailsSection({ className, data, onChange }) {
+    const [expandedUser, setExpandedUser] = useState(null);
+    const [copiedLink, setCopiedLink] = useState(false);
+
     const handleChange = (field, value) => {
         onChange?.({ ...data, [field]: value });
     };
@@ -22,6 +27,26 @@ function CoreDetailsSection({ className, data, onChange }) {
             : [...currentUsers, userId];
         handleChange("selectedUsers", newUsers);
     };
+
+    const toggleUserDropdown = (e, userId) => {
+        e.stopPropagation();
+        setExpandedUser(expandedUser === userId ? null : userId);
+    };
+
+    const handleCopyInviteLink = (e, user) => {
+        e.stopPropagation();
+        const inviteLink = `${window.location.origin}/invite?ref=${user.id}&code=${user.code}`;
+        navigator.clipboard.writeText(inviteLink);
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 2000);
+    };
+
+    // Sample friends data (in real app, this would come from API)
+    const getUserFriends = (userId) => [
+        { id: `f1-${userId}`, name: "John Doe", email: "john@example.com" },
+        { id: `f2-${userId}`, name: "Jane Smith", email: "jane@example.com" },
+        { id: `f3-${userId}`, name: "Mike Johnson", email: "mike@example.com" },
+    ];
 
     return (
         <div className={cn("p-4 sm:p-6", className)}>
@@ -83,26 +108,113 @@ function CoreDetailsSection({ className, data, onChange }) {
                         </RadioGroup>
                     </div>
 
-                    {/* Users/Resources Pills */}
+                    {/* Users/Resources Pills with Email and Dropdown */}
                     <div className="space-y-2">
                         <Label className="text-sm font-medium text-slate-700">Select Users</Label>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-col gap-3">
                             {(data.availableUsers || []).map((user) => (
-                                <button
-                                    key={user.id}
-                                    onClick={() => toggleUser(user.id)}
-                                    className={cn(
-                                        "flex items-center gap-2 rounded-xl border-2 px-3 py-2 text-sm font-medium transition-all duration-200",
-                                        (data.selectedUsers || []).includes(user.id)
-                                            ? "border-primary bg-primary/5 text-primary shadow-sm"
-                                            : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                                <div key={user.id} className="relative">
+                                    <div
+                                        className={cn(
+                                            "flex items-center justify-between rounded-xl border-2 px-3 py-2.5 transition-all duration-200",
+                                            (data.selectedUsers || []).includes(user.id)
+                                                ? "border-primary bg-primary/5 shadow-sm"
+                                                : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+                                        )}
+                                    >
+                                        <button
+                                            onClick={() => toggleUser(user.id)}
+                                            className="flex flex-1 items-center gap-3"
+                                        >
+                                            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-xs font-bold text-white shadow-sm">
+                                                {user.code}
+                                            </span>
+                                            <div className="text-left">
+                                                <p className={cn(
+                                                    "text-sm font-medium",
+                                                    (data.selectedUsers || []).includes(user.id) ? "text-primary" : "text-slate-700"
+                                                )}>
+                                                    {user.name}
+                                                </p>
+                                                <p className="text-xs text-slate-500">
+                                                    {user.email || `${user.code.toLowerCase()}@example.com`}
+                                                </p>
+                                            </div>
+                                        </button>
+
+                                        {/* Dropdown Arrow */}
+                                        <button
+                                            onClick={(e) => toggleUserDropdown(e, user.id)}
+                                            className="ml-2 flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors"
+                                        >
+                                            {expandedUser === user.id ? (
+                                                <ChevronUp className="h-4 w-4 text-slate-600" />
+                                            ) : (
+                                                <ChevronDown className="h-4 w-4 text-slate-600" />
+                                            )}
+                                        </button>
+                                    </div>
+
+                                    {/* Dropdown Panel */}
+                                    {expandedUser === user.id && (
+                                        <div className="mt-2 rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden animate-in slide-in-from-top-2 duration-200">
+                                            {/* Invite Link Section */}
+                                            <div className="border-b border-slate-100 p-3">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <Share2 className="h-4 w-4 text-indigo-500" />
+                                                    <span className="text-sm font-medium text-slate-700">Invite Friends</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-lg border border-slate-200">
+                                                        <Link className="h-3.5 w-3.5 text-slate-400" />
+                                                        <span className="text-xs text-slate-500 truncate">
+                                                            {`${window.location.origin}/invite?ref=${user.id}`}
+                                                        </span>
+                                                    </div>
+                                                    <button
+                                                        onClick={(e) => handleCopyInviteLink(e, user)}
+                                                        className={cn(
+                                                            "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all",
+                                                            copiedLink
+                                                                ? "bg-green-100 text-green-700"
+                                                                : "bg-indigo-100 text-indigo-700 hover:bg-indigo-200"
+                                                        )}
+                                                    >
+                                                        <Copy className="h-3.5 w-3.5" />
+                                                        {copiedLink ? "Copied!" : "Copy"}
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Friends List Section */}
+                                            <div className="p-3">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <Users className="h-4 w-4 text-purple-500" />
+                                                    <span className="text-sm font-medium text-slate-700">Friends</span>
+                                                </div>
+                                                <div className="space-y-2 max-h-32 overflow-y-auto">
+                                                    {getUserFriends(user.id).map((friend) => (
+                                                        <div
+                                                            key={friend.id}
+                                                            className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
+                                                        >
+                                                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-pink-400 to-rose-500 text-[10px] font-bold text-white">
+                                                                {friend.name.charAt(0)}
+                                                            </span>
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-xs font-medium text-slate-700 truncate">{friend.name}</p>
+                                                                <p className="text-[10px] text-slate-400 truncate">{friend.email}</p>
+                                                            </div>
+                                                            <button className="px-2 py-1 text-[10px] font-medium text-indigo-600 bg-indigo-50 rounded hover:bg-indigo-100 transition-colors">
+                                                                Invite
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
                                     )}
-                                >
-                                    <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-[10px] font-bold text-white shadow-sm">
-                                        {user.code}
-                                    </span>
-                                    {user.name}
-                                </button>
+                                </div>
                             ))}
                         </div>
                     </div>
@@ -161,4 +273,3 @@ function CoreDetailsSection({ className, data, onChange }) {
 }
 
 export { CoreDetailsSection };
-

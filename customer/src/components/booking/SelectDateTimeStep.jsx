@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useBookingStore } from '../../context/BookingContext';
 import { getAvailableSlots } from '../../services/appointmentService';
 import { subscribeToSlots, unsubscribeFromSlots, onSlotUpdate, connectSocket } from '../../services/socket';
+import api from '../../services/api';
 
 /**
  * @intent Paper Planner styled date/time selection with 2-column layout
@@ -19,9 +20,55 @@ const SelectDateTimeStep = () => {
   const [numberOfPeople, setNumberOfPeople] = useState(1);
   const [isConnected, setIsConnected] = useState(false);
   const [loadingValues, setLoadingValues] = useState(false);
+  const [availableDays, setAvailableDays] = useState([]); // Days that have schedule defined
 
   const manageCapacity = booking.service?.manageCapacity || false;
   const maxCapacity = booking.service?.capacity || 10;
+
+  // Day name mapping for working hours
+  const dayNameMap = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+
+  // Fetch working hours to determine available days
+  useEffect(() => {
+    const fetchWorkingHours = async () => {
+      try {
+        let workingHours = null;
+
+        if (booking.provider?.id && booking.provider !== 'ANY') {
+          // Fetch provider's working hours
+          const res = await api.get(`/providers/${booking.provider.id}`);
+          workingHours = res.data?.workingHours?.weekly || res.data?.workingHours;
+        } else if (booking.resource?.id && booking.resource !== 'ANY') {
+          // Fetch resource's working hours
+          const res = await api.get(`/resources/${booking.resource.id}`);
+          workingHours = res.data?.workingHours;
+        }
+
+        if (workingHours) {
+          // Find days that are enabled in the schedule
+          const enabledDays = [];
+          Object.entries(workingHours).forEach(([day, config]) => {
+            if (config && config.enabled) {
+              const dayIndex = dayNameMap.indexOf(day.toLowerCase());
+              if (dayIndex !== -1) {
+                enabledDays.push(dayIndex);
+              }
+            }
+          });
+          setAvailableDays(enabledDays);
+        } else {
+          // If no specific working hours, allow all days
+          setAvailableDays([0, 1, 2, 3, 4, 5, 6]);
+        }
+      } catch (error) {
+        console.error('Failed to fetch working hours:', error);
+        // Default to all days if fetch fails
+        setAvailableDays([0, 1, 2, 3, 4, 5, 6]);
+      }
+    };
+
+    fetchWorkingHours();
+  }, [booking.provider, booking.resource]);
 
   // Handle real-time slot update
   const handleSlotUpdate = useCallback((data) => {
@@ -140,8 +187,21 @@ const SelectDateTimeStep = () => {
     return date < today;
   };
 
+  // Check if a day has schedule defined
+  const hasSchedule = (date) => {
+    if (!date) return false;
+    const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    return availableDays.length === 0 || availableDays.includes(dayOfWeek);
+  };
+
+  // Day is disabled if it's in the past OR doesn't have a schedule
+  const isDayDisabled = (date) => {
+    if (!date) return true;
+    return isPast(date) || !hasSchedule(date);
+  };
+
   const handleDateSelect = (date) => {
-    if (date && !isPast(date)) {
+    if (date && !isDayDisabled(date)) {
       setSelectedDate(date);
       setSelectedTime(null);
       setSelectedSlotId(null);
@@ -218,16 +278,16 @@ const SelectDateTimeStep = () => {
                 <button
                   key={index}
                   onClick={() => handleDateSelect(date)}
-                  disabled={!date || isPast(date)}
+                  disabled={!date || isDayDisabled(date)}
                   className={`
                     h-8 w-8 mx-auto text-sm rounded
                     flex items-center justify-center
                     transition-colors
                     ${!date ? 'invisible' : ''}
-                    ${date && isPast(date) ? 'text-ink/20 cursor-not-allowed' : ''}
-                    ${date && !isPast(date) ? 'hover:bg-paper cursor-pointer text-ink/70' : ''}
-                    ${isToday(date) && !isSelected(date) ? 'font-bold text-terracotta' : ''}
-                    ${isSelected(date) ? 'bg-ink text-white' : ''}
+                    ${date && isDayDisabled(date) ? 'text-ink/20 cursor-not-allowed' : ''}
+                    ${date && !isDayDisabled(date) ? 'hover:bg-paper cursor-pointer text-ink/70' : ''}
+                    ${isToday(date) && !isSelected(date) && !isDayDisabled(date) ? 'font-bold text-terracotta' : ''}
+                    ${isSelected(date) && !isDayDisabled(date) ? 'bg-ink text-white' : ''}
                   `}
                 >
                   {date?.getDate()}
