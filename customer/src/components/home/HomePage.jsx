@@ -7,7 +7,7 @@ import { getServices } from '../../services/appointmentService';
  * @intent Paper Planner styled homepage with service cards and search
  */
 const HomePage = () => {
-  const { openDrawer, updateBooking, setStep } = useBookingStore();
+  const { openDrawer, updateBooking, setStep, resetBooking } = useBookingStore();
   const [services, setServices] = useState([]);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
@@ -21,6 +21,9 @@ const HomePage = () => {
   }, []);
 
   const handleBookService = (service) => {
+    // Reset booking first, then set new service
+    // This prevents old court/provider data from persisting when switching services
+    resetBooking();
     updateBooking({ service });
     setStep(2); // Skip straight to provider selection
     openDrawer();

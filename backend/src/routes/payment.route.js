@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { initiatePayment, handleCallback, verifyPaymentStatus, getTransactions } from "../controllers/payment.controller.js";
+import { getTransactions, handleCallback, initiatePayment, verifyPaymentStatus } from "../controllers/payment.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 
 const router = Router();
@@ -10,4 +10,3 @@ router.get("/status/:txnId", authMiddleware, verifyPaymentStatus);
 router.get("/history", authMiddleware, getTransactions);
 
 export default router;
-鼓

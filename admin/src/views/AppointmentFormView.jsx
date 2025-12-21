@@ -43,7 +43,7 @@ function AppointmentFormView({ appointment, onBack, onReporting, onSettings }) {
         picture: appointment?.image || null,
         duration: formatDuration(appointment?.duration || 30),
         location: appointment?.venue || "Doctor's Office",
-        bookType: "user",
+        bookType: appointment?.resourceType ? 'resources' : 'user',
         selectedUsers: appointment?.resources || ["A1", "A2"],
         availableUsers: [
             { id: "A1", code: "A1", name: "User 1" },
@@ -152,6 +152,9 @@ function AppointmentFormView({ appointment, onBack, onReporting, onSettings }) {
             image: formData.picture,
             capacity: formData.simultaneousAppointments,
             manageCapacity: formData.manageCapacity,
+
+            // Resource type - determines if shown in Resources section on customer page
+            resourceType: formData.bookType === 'resources' ? 'COURT' : null,
 
             // Options tab
             manualConfirmation: optionsData.manualConfirmation,

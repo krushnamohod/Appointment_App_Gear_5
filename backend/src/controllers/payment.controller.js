@@ -1,6 +1,6 @@
-import prisma from "../../prisma/client.js";
-import { initiatePhonePePayment, checkPhonePeStatus } from "../services/paymentService.js";
 import { v4 as uuidv4 } from 'uuid';
+import prisma from "../../prisma/client.js";
+import { checkPhonePeStatus, initiatePhonePePayment } from "../services/paymentService.js";
 
 export async function initiatePayment(req, res, next) {
     try {
@@ -40,8 +40,8 @@ export async function initiatePayment(req, res, next) {
             }
         });
 
-        // 4. Call PhonePe
-        const redirectUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment-status?txnId=${merchantTransactionId}`;
+        // 4. Call PhonePe - redirect to CUSTOMER app (port 5174), not admin
+        const redirectUrl = `${process.env.CUSTOMER_URL || 'http://localhost:5174'}/payment-status?txnId=${merchantTransactionId}`;
         const callbackUrl = `${process.env.BACKEND_URL || 'http://localhost:3000'}/api/payments/callback`;
 
         const paymentInitRes = await initiatePhonePePayment({
@@ -154,4 +154,3 @@ export async function getTransactions(req, res, next) {
         next(error);
     }
 }
-鼓

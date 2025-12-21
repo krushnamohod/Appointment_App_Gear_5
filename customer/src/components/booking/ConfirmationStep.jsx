@@ -23,19 +23,44 @@ const ConfirmationStep = () => {
         });
     };
 
+    // Helper to parse time string like "10:00 AM" or "2:30 PM" to 24hr format
+    const parseTime = (timeStr) => {
+        if (!timeStr) return null;
+        const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+        if (!match) return null;
+        let hours = parseInt(match[1], 10);
+        const minutes = match[2];
+        const period = match[3]?.toUpperCase();
+
+        if (period === 'PM' && hours !== 12) hours += 12;
+        if (period === 'AM' && hours === 12) hours = 0;
+
+        return `${hours.toString().padStart(2, '0')}:${minutes}:00`;
+    };
+
     // Generate Google Calendar link
     const getGoogleCalendarLink = () => {
         if (!booking.date || !booking.time) return '#';
-        const startDate = new Date(`${booking.date}T${booking.time.replace(' AM', ':00').replace(' PM', ':00')}`);
+        const timeStr = parseTime(booking.time);
+        if (!timeStr) return '#';
+
+        const startDate = new Date(`${booking.date}T${timeStr}`);
+        if (isNaN(startDate.getTime())) return '#';
+
         const endDate = new Date(startDate.getTime() + (booking.service?.duration || 30) * 60000);
         const formatForGoogle = (date) => date.toISOString().replace(/-|:|\.\d{3}/g, '');
-        return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(booking.service?.name || 'Appointment')}&dates=${formatForGoogle(startDate)}/${formatForGoogle(endDate)}&details=${encodeURIComponent('Booked via Appointment App')}`;
+        return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(booking.service?.name || 'Appointment')}&dates=${formatForGoogle(startDate)}/${formatForGoogle(endDate)}&details=${encodeURIComponent('Booked via Syncra')}`;
     };
 
     // Generate Outlook Calendar link
     const getOutlookCalendarLink = () => {
         if (!booking.date || !booking.time) return '#';
-        const startDate = new Date(`${booking.date}T${booking.time.replace(' AM', ':00').replace(' PM', ':00')}`);
+        const timeStr = parseTime(booking.time);
+        if (!timeStr) return '#';
+
+        const startDate = new Date(`${booking.date}T${timeStr}`);
+        if (isNaN(startDate.getTime())) return '#';
+
         const endDate = new Date(startDate.getTime() + (booking.service?.duration || 30) * 60000);
         return `https://outlook.live.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(booking.service?.name || 'Appointment')}&startdt=${startDate.toISOString()}&enddt=${endDate.toISOString()}`;
     };

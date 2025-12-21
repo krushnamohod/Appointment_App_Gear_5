@@ -13,6 +13,7 @@ import ChatWidget from './components/chat/ChatWidget';
 import Navbar from './components/common/Navbar';
 import HomePage from './components/home/HomePage';
 import ProfilePage from './components/profile/ProfilePage';
+import PaymentStatus from './pages/PaymentStatus';
 
 import { useEffect } from 'react';
 import { getMe } from './services/authService';
@@ -72,6 +73,10 @@ function App() {
           <Route
             path="/profile"
             element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/payment-status"
+            element={isAuthenticated ? <PaymentStatus /> : <Navigate to="/login" />}
           />
 
           {/* 404 Fallback */}
