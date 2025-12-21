@@ -66,7 +66,7 @@ const HomePage = () => {
                   }}
                   className="bg-ink text-white px-8 py-4 rounded-full font-bold hover:bg-ink/90 transition-all shadow-xl active:scale-95"
                 >
-                  Book a Court
+                  Reserve
                 </button>
                 <button
                   onClick={() => openDrawer()}
@@ -113,7 +113,7 @@ const HomePage = () => {
               >
                 <div className="h-56 overflow-hidden relative">
                   <img
-                    src={court.image || '/court-placeholder.jpg'}
+                    src={court.image || '/badminton_court.jpeg'}
                     alt={court.name}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
