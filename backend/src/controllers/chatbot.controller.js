@@ -1,13 +1,10 @@
-import { Ollama } from 'ollama';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import prisma from '../../prisma/client.js';
-import { buildSystemPrompt, detectIntent, FAQ_RESPONSES } from '../utils/chatPrompts.js';
+import { buildSystemPrompt, detectIntent } from '../utils/chatPrompts.js';
 
-// Initialize Ollama client
-const ollama = new Ollama({
-    host: process.env.OLLAMA_URL || 'http://localhost:11434'
-});
-
-const MODEL_NAME = process.env.OLLAMA_MODEL || 'qwen2.5-coder:7b-instruct-q5_K_M';
+// Initialize Gemini client
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const MODEL_NAME = "gemini-2.0-flash"; // Using available 2.0 Flash model
 
 // In-memory conversation store (per user)
 // In production, use Redis for persistence
@@ -87,29 +84,36 @@ export async function handleChatMessage(req, res, next) {
         // Detect intent for potential quick actions
         const intent = detectIntent(message);
 
-        // Build messages array for Ollama
-        const messages = [
-            { role: 'system', content: systemPrompt },
-            ...history,
-            { role: 'user', content: message }
-        ];
-
         console.log(`🤖 Chat request from ${userId}: "${message}" (intent: ${intent})`);
 
-        // Call Ollama
-        const response = await ollama.chat({
+        // Get Generative Model
+        const model = genAI.getGenerativeModel({
             model: MODEL_NAME,
-            messages: messages,
-            options: {
-                temperature: 0.7,
-                top_p: 0.9,
-                num_predict: 300
-            }
+            systemInstruction: systemPrompt
         });
 
-        const assistantMessage = response.message.content;
+        // Convert internal history to Gemini format
+        // Internal: { role: 'user'/'assistant', content: '...' }
+        // Gemini: { role: 'user'/'model', parts: [{ text: '...' }] }
+        const geminiHistory = history.map(msg => ({
+            role: msg.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: msg.content }]
+        }));
 
-        // Update conversation history (keep last 10 exchanges)
+        // Start Chat Session
+        const chat = model.startChat({
+            history: geminiHistory,
+            generationConfig: {
+                maxOutputTokens: 300,
+                temperature: 0.7,
+            },
+        });
+
+        // Send message
+        const result = await chat.sendMessage(message);
+        const assistantMessage = result.response.text();
+
+        // Update internal conversation history (keep last 10 exchanges)
         history.push({ role: 'user', content: message });
         history.push({ role: 'assistant', content: assistantMessage });
 
@@ -154,10 +158,10 @@ export async function handleChatMessage(req, res, next) {
     } catch (error) {
         console.error('🤖 Chat error:', error);
 
-        // Handle Ollama connection errors gracefully
-        if (error.code === 'ECONNREFUSED') {
-            return res.status(503).json({
-                error: 'AI service is currently unavailable. Please try again later.',
+        // Handle errors gracefully
+        if (error.message?.includes('API key')) {
+            return res.status(500).json({
+                error: 'AI service configuration error.',
                 fallback: true
             });
         }
@@ -208,14 +212,15 @@ export async function getQuickSuggestions(req, res, next) {
  */
 export async function checkHealth(req, res) {
     try {
-        // Quick ping to Ollama
-        const tags = await ollama.list();
-        const modelAvailable = tags.models?.some(m => m.name.includes('qwen'));
+        // Simple check if API key is present
+        if (!process.env.GEMINI_API_KEY) {
+            throw new Error("GEMINI_API_KEY not found associated with the backend.");
+        }
 
         res.json({
             status: 'ok',
             model: MODEL_NAME,
-            modelAvailable
+            modelAvailable: true
         });
     } catch (error) {
         res.status(503).json({
