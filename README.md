@@ -24,14 +24,14 @@ A full-stack appointment booking application with an admin dashboard, customer p
 │                   BACKEND (Express.js)                      │
 │                       Port: 3000                            │
 ├─────────────────────────────────────────────────────────────┤
-│  REST API │ Socket.IO │ AI Chatbot (Ollama) │ Email Service │
+│  REST API │ Socket.IO │ AI Chatbot (Gemini) │ Email Service │
 └─────────────────────────────────────────────────────────────┘
                               │
               ┌───────────────┼───────────────┐
               ▼               ▼               ▼
         ┌──────────┐   ┌──────────┐    ┌──────────┐
-        │PostgreSQL│   │  Redis   │    │  Ollama  │
-        │ Database │   │  Cache   │    │    AI    │
+        │PostgreSQL│   │  Redis   │    │GoogleGemini│
+        │ Database │   │  Cache   │    │   API    │
         └──────────┘   └──────────┘    └──────────┘
 ```
 
@@ -60,7 +60,7 @@ A full-stack appointment booking application with an admin dashboard, customer p
 - 🔐 JWT Authentication with role-based access control
 - 📧 Email notifications (Nodemailer)
 - 💰 Payment processing with PhonePe
-- 🤖 AI Chatbot integration with Ollama/DeepSeek
+- 🤖 AI Chatbot integration with Google Gemini Pro
 - 🔄 Real-time WebSocket events
 - 📁 File uploads for images
 
@@ -72,7 +72,7 @@ A full-stack appointment booking application with an admin dashboard, customer p
 | **Backend** | Node.js, Express 5, Socket.IO |
 | **Database** | PostgreSQL + Prisma ORM |
 | **Cache** | Redis |
-| **AI** | Ollama (DeepSeek Coder model) |
+| **AI** | Google Gemini API (gemini-2.0-flash) |
 | **Payments** | PhonePe |
 | **Email** | Nodemailer |
 
@@ -124,7 +124,7 @@ Appointment_App_Gear_5/
 - Node.js 18+
 - PostgreSQL
 - Redis (optional, for caching)
-- Ollama (optional, for AI chatbot)
+- Google Gemini API Key
 
 ### 1. Clone & Install
 
@@ -162,9 +162,8 @@ PHONEPE_MERCHANT_ID="your-merchant-id"
 PHONEPE_SALT_KEY="your-salt-key"
 PHONEPE_SALT_INDEX=1
 
-# Ollama AI (optional)
-OLLAMA_HOST="http://localhost:11434"
-OLLAMA_MODEL="deepseek-coder-v2:16b-lite-instruct-q4_K_M"
+# Google Gemini API
+GEMINI_API_KEY="your-google-gemini-api-key"
 ```
 
 Create `.env` file in `admin/` and `customer/`:
@@ -233,20 +232,15 @@ npm run dev          # Runs on http://localhost:5173
 
 ## 🤖 AI Chatbot
 
-The integrated chatbot uses Ollama with DeepSeek model to:
+The integrated chatbot uses **Google Gemini 2.0 Flash** to:
 - Answer questions about services
 - Recommend services based on symptoms/needs
 - Guide users through the booking process
 - Provide general appointment assistance
 
-**Setup Ollama:**
-```bash
-# Install Ollama
-curl -fsSL https://ollama.ai/install.sh | sh
-
-# Pull the model
-ollama pull deepseek-coder-v2:16b-lite-instruct-q4_K_M
-```
+**Setup Gemini:**
+1. Get an API Key from [Google AI Studio](https://aistudio.google.com/).
+2. Add it to `backend/.env` as `GEMINI_API_KEY`.
 
 ## 📜 Scripts
 
