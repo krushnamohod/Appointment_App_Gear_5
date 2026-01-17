@@ -1,7 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { MessageCircle, X, Send, RotateCcw, Sparkles } from 'lucide-react';
+import { MessageCircle, X, Send, RotateCcw, Sparkles, Calendar, Clock, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import ChatMessage from './ChatMessage';
-import { sendChatMessage, resetConversation, getQuickSuggestions } from '../../services/chatService';
+import {
+    sendChatMessage,
+    resetConversation,
+    getQuickSuggestions,
+    bookViaChat,
+    cancelViaChat,
+    rescheduleViaChat,
+    getSmartSlots
+} from '../../services/chatService';
 import { useBookingStore } from '../../context/BookingContext';
 
 /**
@@ -10,19 +18,22 @@ import { useBookingStore } from '../../context/BookingContext';
  * - Expandable chat drawer
  * - Message history with typing indicator
  * - Quick action suggestions
+ * - Smart scheduling with slot suggestions
+ * - Booking, cancellation, and reschedule via chat
  */
 const ChatWidget = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
         {
             id: 'welcome',
-            content: "Hi! 👋 I'm your appointment assistant. How can I help you today?",
+            content: "Hi! 👋 I'm your appointment assistant. I can help you book, reschedule, or cancel appointments. What would you like to do?",
             isUser: false
         }
     ]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [suggestions, setSuggestions] = useState([]);
+    const [pendingReschedule, setPendingReschedule] = useState(null);
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
 
@@ -53,13 +64,23 @@ const ChatWidget = () => {
         }
     };
 
+    const addMessage = (content, isUser = false, extras = {}) => {
+        const newMessage = {
+            id: Date.now() + Math.random(),
+            content,
+            isUser,
+            ...extras
+        };
+        setMessages(prev => [...prev, newMessage]);
+        return newMessage;
+    };
+
     const handleSend = async () => {
         const message = inputValue.trim();
         if (!message || isLoading) return;
 
         // Add user message
-        const userMessage = { id: Date.now(), content: message, isUser: true };
-        setMessages(prev => [...prev, userMessage]);
+        addMessage(message, true);
         setInputValue('');
         setIsLoading(true);
 
@@ -67,21 +88,13 @@ const ChatWidget = () => {
             const response = await sendChatMessage(message);
 
             // Add AI response
-            const aiMessage = {
-                id: Date.now() + 1,
-                content: response.message,
-                isUser: false,
-                action: response.suggestedAction
-            };
-            setMessages(prev => [...prev, aiMessage]);
+            addMessage(response.message, false, {
+                action: response.suggestedAction,
+                slots: response.suggestedSlots
+            });
 
         } catch (error) {
-            // Add error message
-            setMessages(prev => [...prev, {
-                id: Date.now() + 1,
-                content: "Sorry, I'm having trouble connecting. Please try again in a moment.",
-                isUser: false
-            }]);
+            addMessage("Sorry, I'm having trouble connecting. Please try again in a moment.", false);
         } finally {
             setIsLoading(false);
         }
@@ -90,6 +103,7 @@ const ChatWidget = () => {
     const handleReset = async () => {
         try {
             await resetConversation();
+            setPendingReschedule(null);
             setMessages([
                 {
                     id: 'welcome',
@@ -102,15 +116,107 @@ const ChatWidget = () => {
         }
     };
 
-    const handleAction = (action) => {
-        if (action.type === 'book' && action.serviceId) {
-            // Set selected service and open booking flow
-            setSelectedService({ id: action.serviceId, name: action.serviceName });
-            openDrawer();
-            setIsOpen(false);
-        } else if (action.type === 'open_booking') {
-            openDrawer();
-            setIsOpen(false);
+    const handleQuickBook = async (slotId, serviceId, serviceName, time) => {
+        setIsLoading(true);
+        try {
+            const result = await bookViaChat(slotId, serviceId);
+            addMessage(result.message, false, {
+                isConfirmation: true,
+                booking: result.booking
+            });
+        } catch (error) {
+            const errorMsg = error.response?.data?.error || 'Failed to book. Please try again.';
+            addMessage(`❌ ${errorMsg}`, false);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleCancelBooking = async (bookingId, serviceName) => {
+        setIsLoading(true);
+        addMessage(`Cancelling your ${serviceName} appointment...`, false);
+
+        try {
+            const result = await cancelViaChat(bookingId);
+            addMessage(result.message, false, { isCancellation: true });
+        } catch (error) {
+            const errorMsg = error.response?.data?.error || 'Failed to cancel. Please try again.';
+            addMessage(`❌ ${errorMsg}`, false);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleRescheduleBooking = async (bookingId, serviceName) => {
+        setPendingReschedule({ bookingId, serviceName });
+        addMessage(
+            `To reschedule your **${serviceName}** appointment, please tell me your preferred date (e.g., "tomorrow", "next Monday", "January 25th").`,
+            false
+        );
+    };
+
+    const handleRescheduleWithSlot = async (newSlotId) => {
+        if (!pendingReschedule) return;
+
+        setIsLoading(true);
+        try {
+            const result = await rescheduleViaChat(pendingReschedule.bookingId, newSlotId);
+            addMessage(result.message, false, { isReschedule: true });
+            setPendingReschedule(null);
+        } catch (error) {
+            const errorMsg = error.response?.data?.error || 'Failed to reschedule. Please try again.';
+            addMessage(`❌ ${errorMsg}`, false);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleAction = async (action) => {
+        if (!action) return;
+
+        switch (action.type) {
+            case 'book':
+                // Set selected service and open booking flow
+                setSelectedService({ id: action.serviceId, name: action.serviceName });
+                openDrawer();
+                setIsOpen(false);
+                break;
+
+            case 'open_booking':
+                openDrawer();
+                setIsOpen(false);
+                break;
+
+            case 'quick_book':
+                await handleQuickBook(action.slotId, action.serviceId, action.serviceName, action.time);
+                break;
+
+            case 'slot_suggestions':
+                // Slots are already displayed in the message
+                break;
+
+            case 'cancel_booking':
+                await handleCancelBooking(action.bookingId, action.serviceName);
+                break;
+
+            case 'reschedule_booking':
+                await handleRescheduleBooking(action.bookingId, action.serviceName);
+                break;
+
+            case 'show_bookings':
+                // Bookings are displayed in the message
+                break;
+
+            default:
+                console.log('Unknown action type:', action.type);
+        }
+    };
+
+    const handleSlotSelect = async (slot, action) => {
+        if (pendingReschedule) {
+            await handleRescheduleWithSlot(slot.id);
+        } else if (action) {
+            await handleQuickBook(slot.id, action.serviceId, action.serviceName, slot.time);
         }
     };
 
@@ -163,6 +269,7 @@ const ChatWidget = () => {
                     <div className="flex items-center gap-2">
                         <Sparkles size={20} />
                         <span className="font-medium">AI Assistant</span>
+                        <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">Smart Scheduling</span>
                     </div>
                     <div className="flex items-center gap-1">
                         <button
@@ -189,7 +296,12 @@ const ChatWidget = () => {
                             content={msg.content}
                             isUser={msg.isUser}
                             action={msg.action}
+                            slots={msg.slots}
+                            isConfirmation={msg.isConfirmation}
+                            isCancellation={msg.isCancellation}
+                            isReschedule={msg.isReschedule}
                             onAction={handleAction}
+                            onSlotSelect={(slot) => handleSlotSelect(slot, msg.action)}
                         />
                     ))}
 
@@ -227,6 +339,22 @@ const ChatWidget = () => {
                     </div>
                 )}
 
+                {/* Pending Reschedule Notice */}
+                {pendingReschedule && (
+                    <div className="px-4 pb-2">
+                        <div className="flex items-center gap-2 p-2 bg-amber-50 text-amber-700 rounded-lg text-sm">
+                            <RefreshCw size={16} />
+                            <span>Rescheduling: {pendingReschedule.serviceName}</span>
+                            <button
+                                onClick={() => setPendingReschedule(null)}
+                                className="ml-auto text-amber-500 hover:text-amber-700"
+                            >
+                                <X size={14} />
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 {/* Input Area */}
                 <div className="p-4 border-t border-ink/10">
                     <div className="flex gap-2">
@@ -236,7 +364,7 @@ const ChatWidget = () => {
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
                             onKeyDown={handleKeyDown}
-                            placeholder="Type your message..."
+                            placeholder={pendingReschedule ? "Enter preferred date..." : "Type your message..."}
                             className="flex-1 px-4 py-2.5 bg-ink/5 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-sage/30"
                             disabled={isLoading}
                         />
@@ -263,3 +391,4 @@ const ChatWidget = () => {
 };
 
 export default ChatWidget;
+
